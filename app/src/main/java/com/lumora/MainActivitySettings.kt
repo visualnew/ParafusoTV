@@ -23,6 +23,8 @@ import com.lumora.data.IptvProviderStore
 import com.lumora.data.IptvProviderMetaStore
 import com.lumora.pairing.QrPairingManager
 import com.lumora.player.PlayerManager
+import com.lumora.security.AdministrativePinStore
+import com.lumora.security.AdministrativePinVerification
 import com.lumora.util.normalizeServerUrl
 import com.lumora.data.local.entity.EpgSourceEntity
 import com.lumora.data.backup.BackupManager
@@ -43,11 +45,6 @@ import java.util.Date
 // ── Provider settings, EPG sources & backup ──
 //
 // Extracted from MainActivity.kt; see that file's header.
-
-/** Wrong PIN entries before entry is refused for [PIN_LOCKOUT_MS]. */
-private const val MAX_PIN_ATTEMPTS = 5
-/** Lockout window after too many wrong PIN entries. */
-private const val PIN_LOCKOUT_MS = 30_000L
 
 internal fun MainActivity.showAddEpgSourceDialog() {
     val input = EditText(this).apply {
@@ -1895,34 +1892,15 @@ internal fun MainActivity.showProviderSettings() {
  *  and only for movies - a series detail screen isn't a single episode, so there's nothing
  *  specific to resolve from here (per-episode search would hang off the episode list). */
 
-internal fun MainActivity.hasParentalPin(): Boolean = !prefs.getString(PREF_PARENTAL_PIN, null).isNullOrBlank()
-
-/** Per-install salt, minted once and kept in prefs. A fixed salt would make the hash
- *  deterministic across installs; a random one means a leaked hash from one device is
- *  useless elsewhere. */
-private fun MainActivity.pinSalt(): String {
-    prefs.getString(PREF_PARENTAL_PIN_SALT, null)?.let { return it }
-    val salt = java.util.UUID.randomUUID().toString()
-    prefs.edit().putString(PREF_PARENTAL_PIN_SALT, salt).apply()
-    return salt
-}
-
-private fun MainActivity.hashPin(pin: String): String {
-    val digest = java.security.MessageDigest.getInstance("SHA-256")
-    return digest.digest((pinSalt() + pin).toByteArray(Charsets.UTF_8))
-        .joinToString("") { "%02x".format(it) }
-}
-
-/** True when [stored] is a legacy plaintext 4-digit PIN written before hashing. */
-private fun MainActivity.isLegacyPlaintextPin(stored: String): Boolean =
-    stored.length == 4 && stored.all { it.isDigit() }
+/** Legacy name retained while callers migrate to the explicit administrative PIN terminology. */
+internal fun MainActivity.hasParentalPin(): Boolean = administrativePinStore.hasPin()
 
 /** 4-digit PIN entry. Calls onCorrect only if it matches the saved PIN. Wrong attempts are
  *  counted and, past [MAX_PIN_ATTEMPTS], entry is refused for [PIN_LOCKOUT_MS] - a 4-digit
  *  space is trivially brute-forceable without the cap. */
 internal fun MainActivity.promptForPin(title: String, onCorrect: () -> Unit) {
     val now = System.currentTimeMillis()
-    val lockoutUntil = prefs.getLong(PREF_PIN_LOCKOUT_UNTIL, 0L)
+    val lockoutUntil = administrativePinStore.lockoutUntilMillis()
     if (now < lockoutUntil) {
         Toast.makeText(this, getString(R.string.sett_pin_locked, ((lockoutUntil - now) / 1000).toString()), Toast.LENGTH_SHORT).show()
         return
@@ -1935,29 +1913,17 @@ internal fun MainActivity.promptForPin(title: String, onCorrect: () -> Unit) {
         .setTitle(title)
         .setView(input)
         .setPositiveButton(getString(R.string.sett_ok)) { _, _ ->
-            val entered = input.text.toString()
-            val stored = prefs.getString(PREF_PARENTAL_PIN, null)
-            val correct = when {
-                stored == null -> false
-                isLegacyPlaintextPin(stored) -> entered == stored
-                else -> hashPin(entered) == stored
-            }
-            if (correct) {
-                prefs.edit().remove(PREF_PIN_FAILURES).remove(PREF_PIN_LOCKOUT_UNTIL).apply()
-                if (stored != null && isLegacyPlaintextPin(stored)) {
-                    // Upgrade a legacy plaintext PIN to its hash on first successful entry.
-                    prefs.edit().putString(PREF_PARENTAL_PIN, hashPin(entered)).apply()
-                }
-                onCorrect()
-            } else {
-                val failures = prefs.getInt(PREF_PIN_FAILURES, 0) + 1
-                if (failures >= MAX_PIN_ATTEMPTS) {
-                    prefs.edit().putInt(PREF_PIN_FAILURES, 0)
-                        .putLong(PREF_PIN_LOCKOUT_UNTIL, System.currentTimeMillis() + PIN_LOCKOUT_MS).apply()
-                    Toast.makeText(this, getString(R.string.sett_pin_locked, (PIN_LOCKOUT_MS / 1000).toString()), Toast.LENGTH_SHORT).show()
-                } else {
-                    prefs.edit().putInt(PREF_PIN_FAILURES, failures).apply()
+            when (val result = administrativePinStore.verifyAndRecordAttempt(input.text.toString())) {
+                AdministrativePinVerification.Verified -> onCorrect()
+                is AdministrativePinVerification.Invalid ->
                     Toast.makeText(this, getString(R.string.sett_incorrect_pin), Toast.LENGTH_SHORT).show()
+                is AdministrativePinVerification.Locked -> {
+                    val seconds = if (result.justLocked) {
+                        AdministrativePinStore.PIN_LOCKOUT_MS / 1000
+                    } else {
+                        ((result.untilMillis - System.currentTimeMillis()) / 1000).coerceAtLeast(0L)
+                    }
+                    Toast.makeText(this, getString(R.string.sett_pin_locked, seconds.toString()), Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -1991,9 +1957,12 @@ internal fun MainActivity.showSetPinDialog(label: TextView) {
                 .setView(confirm)
                 .setPositiveButton(getString(R.string.save)) { _, _ ->
                     if (confirm.text.toString() == pin) {
-                        prefs.edit().putString(PREF_PARENTAL_PIN, hashPin(pin)).apply()
-                        label.text = getString(R.string.sett_change_parental_pin)
-                        Toast.makeText(this, getString(R.string.sett_parental_pin_set), Toast.LENGTH_SHORT).show()
+                        if (administrativePinStore.setPin(pin)) {
+                            label.text = getString(R.string.sett_change_parental_pin)
+                            Toast.makeText(this, getString(R.string.sett_parental_pin_set), Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(this, getString(R.string.sett_pin_length_error), Toast.LENGTH_SHORT).show()
+                        }
                     } else {
                         Toast.makeText(this, getString(R.string.sett_pins_didnt_match), Toast.LENGTH_SHORT).show()
                     }

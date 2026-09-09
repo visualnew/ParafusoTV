@@ -78,6 +78,7 @@ import com.lumora.player.playback.PlayerDiagnostics
 import com.lumora.data.update.AppUpdateChecker
 import com.lumora.data.update.AppUpdateInstaller
 import com.lumora.player.playback.AvOffsetManager
+import com.lumora.security.AdministrativePinStore
 import com.lumora.state.AppState
 import com.lumora.state.ProfileSession
 import kotlinx.coroutines.*
@@ -345,6 +346,8 @@ class MainActivity : AppCompatActivity() {
      *  can do - sibling files (MainActivityPlayer) go through this instead. */
     internal val isCastManagerReady: Boolean get() = ::castManager.isInitialized
     internal lateinit var prefs: SharedPreferences
+    /** Device-wide administrative credential; per-profile PINs remain in ParafusoParentalStore. */
+    internal val administrativePinStore by lazy { AdministrativePinStore(this) }
     /** Accesses the active profile without changing the existing stores or their persistence. */
     internal val profileSession by lazy {
         ProfileSession(ParafusoProfileStore(this), ParafusoParentalStore(this))
