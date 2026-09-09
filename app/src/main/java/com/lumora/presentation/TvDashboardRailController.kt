@@ -16,7 +16,7 @@ internal enum class TvDashboardRailState {
  * Keeps the existing TV rail compact until a rail item owns focus.
  *
  * The controller deliberately knows nothing about navigation destinations, providers, or
- * player state. Callers provide the Home-specific focus targets for this first rail block.
+ * player state. Callers provide the current browsing surface's focus targets.
  */
 internal class TvDashboardRailController(
     private val rail: ViewGroup,
@@ -28,10 +28,10 @@ internal class TvDashboardRailController(
     private val expandedWidth: Int,
     private val collapsedLogoSize: Int,
     private val expandedLogoSize: Int,
-    private val isHomeVisible: () -> Boolean,
-    private val focusFirstHomeContent: () -> Unit
+    private val canEnterFromContent: () -> Boolean,
+    private val focusCurrentContent: () -> Unit
 ) {
-    private var lastHomeContentFocus: WeakReference<View>? = null
+    private var lastContentFocus: WeakReference<View>? = null
     var state: TvDashboardRailState = TvDashboardRailState.COLLAPSED
         private set
 
@@ -50,7 +50,7 @@ internal class TvDashboardRailController(
             }
             item.setOnKeyListener { _, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
-                    returnToHomeContent()
+                    returnToContent()
                 } else {
                     false
                 }
@@ -59,10 +59,10 @@ internal class TvDashboardRailController(
         setState(TvDashboardRailState.COLLAPSED)
     }
 
-    /** Enters the rail only from Home's explicit left-edge callback. */
-    fun enterFromHome(contentFocus: View, preferredRailItem: View): Boolean {
-        if (!isHomeVisible()) return false
-        lastHomeContentFocus = WeakReference(contentFocus)
+    /** Enters the rail only from a caller that established a real content left edge. */
+    fun enterFromContent(contentFocus: View, preferredRailItem: View): Boolean {
+        if (!canEnterFromContent()) return false
+        lastContentFocus = WeakReference(contentFocus)
         setState(TvDashboardRailState.EXPANDED)
         if (preferredRailItem.requestFocus()) return true
         // A failed request must not leave an unfocused rail occupying expanded width.
@@ -71,17 +71,16 @@ internal class TvDashboardRailController(
     }
 
     /**
-     * Returns to the exact Home card when it remains on screen. If a catalog update detached
-     * it, Home's existing first-item focus helper is the safe fallback. Other surfaces are
-     * intentionally left to their legacy focus behavior until Phase 4.2B.
+     * Returns to the exact content view when it remains on screen. If a catalog update
+     * detached it, the caller's current-surface fallback is the safe destination.
      */
-    private fun returnToHomeContent(): Boolean {
-        if (!isHomeVisible()) return false
-        val previous = lastHomeContentFocus?.get()
+    private fun returnToContent(): Boolean {
+        if (!canEnterFromContent()) return false
+        val previous = lastContentFocus?.get()
         if (previous != null && previous.isShown && previous.isFocusable && previous.requestFocus()) {
             return true
         }
-        focusFirstHomeContent()
+        focusCurrentContent()
         return true
     }
 

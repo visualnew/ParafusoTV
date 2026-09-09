@@ -64,6 +64,10 @@ class LiveGuideAdapter(
     private val fetchPrograms: suspend (String) -> List<XtreamClient.EpgProgram>?
 ) : ListAdapter<Channel, LiveGuideAdapter.RowViewHolder>(DiffCallback()) {
 
+    /** Optional owner for LEFT beyond the guide row's favourite star. The Activity only
+     * installs this for TV while its category sidebar is hidden. */
+    var onLeftEdge: ((View) -> Boolean)? = null
+
     companion object {
         /** Timeline scale (px per programme minute, in dp). Also used by MainActivity's
          *  buildGuideHeader() so the time ruler's 30-minute slots stay in step with the
@@ -187,10 +191,16 @@ class LiveGuideAdapter(
                 } else false
             }
             favStar.setOnKeyListener { _, keyCode, event ->
-                if (event.action == android.view.KeyEvent.ACTION_DOWN && keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT) {
-                    channelInfo.requestFocus()
-                    true
-                } else false
+                when {
+                    event.action != android.view.KeyEvent.ACTION_DOWN -> false
+                    keyCode == android.view.KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        channelInfo.requestFocus()
+                        true
+                    }
+                    keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT ->
+                        onLeftEdge?.invoke(favStar) == true
+                    else -> false
+                }
             }
             scrollView.setOnScrollChangeListener { v, scrollX, _, _, _ -> broadcastScroll(scrollX, v as HorizontalScrollView) }
         }
@@ -205,9 +215,7 @@ class LiveGuideAdapter(
         /** Focuses this row's channel column - used to land D-pad focus (and thus the
          *  preview pane) on the first channel as soon as a category is opened, instead of
          *  leaving the guide sitting there unfocused until the user presses something. */
-        fun requestChannelFocus() {
-            channelInfo.requestFocus()
-        }
+        fun requestChannelFocus(): Boolean = channelInfo.requestFocus()
 
         /** Reserves [px] of end margin so this row's content clears the floating preview
          *  pane - 0 once the row is no longer behind it. Driven by MainActivity's

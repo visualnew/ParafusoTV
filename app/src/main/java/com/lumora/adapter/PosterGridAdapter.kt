@@ -75,6 +75,10 @@ class PosterGridAdapter(
      *  and the keys become unreachable once focus is in the grid. Null leaves LEFT alone. */
     var leftFocusTarget: View? = null
 
+    /** Optional owner for LEFT from a first-column tile. Existing [leftFocusTarget] takes
+     * precedence, which keeps the Discover search keyboard path unchanged. */
+    var onLeftEdge: ((View) -> Boolean)? = null
+
     /** Poster artwork height, as a dimen resource. The card is as wide as the grid's column,
      *  but its height comes from the layout - so a grid in a narrow pane (search, which
      *  gives up most of its width to the keyboard) needs a shorter poster or the artwork is
@@ -138,9 +142,10 @@ class PosterGridAdapter(
                         // than falling through to ordinary focus search.
                         if (target != null && target.requestFocus()) return@setOnKeyListener true
                     } else if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT &&
-                        leftFocusTarget != null && isAtLeftEdge(v)
+                        isAtLeftEdge(v)
                     ) {
                         leftFocusTarget?.let { if (focusLeftTarget(v, it)) return@setOnKeyListener true }
+                        if (onLeftEdge?.invoke(v) == true) return@setOnKeyListener true
                     }
                 }
                 false

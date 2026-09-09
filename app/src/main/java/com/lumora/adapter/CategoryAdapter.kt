@@ -41,6 +41,10 @@ class CategoryAdapter(
      *  Outside this RecyclerView, so unreachable via nextFocusUpId (see PosterGridAdapter). */
     var topRowFocusUpTargetId: Int = View.NO_ID
 
+    /** Optional owner for LEFT beyond this sidebar's own pin star. Unset outside TV's
+     * dashboard rail, so existing category navigation remains unchanged everywhere else. */
+    var onLeftEdge: ((View) -> Boolean)? = null
+
     fun setSelected(id: String?) {
         val oldId = selectedId
         if (oldId == id) return
@@ -105,8 +109,13 @@ class CategoryAdapter(
                         // A GONE star can't take focus, so surface it (if pinnable) first; the
                         // focus listeners keep it consistent from here.
                         updateStarVisibility()
-                        if (star.visibility == View.VISIBLE) star.requestFocus()
-                        true
+                        if (star.visibility == View.VISIBLE) {
+                            star.requestFocus()
+                            true
+                        } else {
+                            onLeftEdge?.invoke(itemView)
+                            true
+                        }
                     }
                     keyCode == KeyEvent.KEYCODE_DPAD_UP -> moveUp()
                     keyCode == KeyEvent.KEYCODE_DPAD_DOWN -> moveDown()
@@ -120,6 +129,8 @@ class CategoryAdapter(
                         itemView.requestFocus()
                         true
                     }
+                    keyCode == KeyEvent.KEYCODE_DPAD_LEFT ->
+                        onLeftEdge?.invoke(star) == true
                     keyCode == KeyEvent.KEYCODE_DPAD_UP -> moveUp()
                     // The star sits inside the row, so a DOWN landing on it escapes the rail
                     // exactly the way one on the row does - same handler, and it steps to the

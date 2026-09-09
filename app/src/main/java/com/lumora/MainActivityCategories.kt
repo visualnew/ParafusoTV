@@ -38,6 +38,7 @@ import com.lumora.util.newestByDate
 import com.lumora.util.cleanVodCategoryLabel
 import com.lumora.util.isAdultCategory
 import com.lumora.util.groupLiveQualityVersions
+import com.lumora.util.DeviceFormFactor
 import kotlinx.coroutines.*
 
 // ── Category rail, tabs & side-menu drill-down ──
@@ -1503,6 +1504,7 @@ internal fun MainActivity.onCategorySelected(category: CategoryFilter) {
     selectedCategoryLabel = category.name
     selectedBrandChannelIds = category.channelIds.ifEmpty { null }
     selectedCategoryIds = if (category.id == null) null else category.matchIds
+    updateDashboardRailSelection()
     if (expandChanged) {
         if (category.expanded) {
             // Was expanded -> collapsing: just remove child rows from the existing
@@ -1603,7 +1605,7 @@ internal fun MainActivity.applyStatus() {
  * phones; on TV the rail becomes the primary navigation surface and the old tabs are hidden. */
 internal fun MainActivity.setupDashboardNavigation() {
     presentationShell.installLegacyChrome()
-    if (!isTv) return
+    if (deviceFormFactor != DeviceFormFactor.TV) return
     // The compact Home tab is hidden by the TV chrome. Keep the existing shelf adapter's
     // top-row fallback inside the visible TV navigation instead of targeting that hidden tab.
     homeShelfAdapter.topRowFocusUpTargetId = R.id.navRailHome
@@ -1660,6 +1662,7 @@ private fun MainActivity.installLegacyTvDashboardNavigationActions() {
                 selectedCategoryLabel = target.name
                 selectedCategoryIds = null
                 selectedBrandChannelIds = null
+                updateDashboardRailSelection()
                 applyCategoryFilter(focusFirstLiveChannel = true)
                 binding.categorySidebar.post {
                     val pos = categories.indexOfFirst { it.id == FAVOURITES_CATEGORY_ID }
@@ -1693,16 +1696,92 @@ private fun MainActivity.installTvDashboardRailController() {
         expandedWidth = resources.getDimensionPixelSize(R.dimen.dashboard_rail_width),
         collapsedLogoSize = resources.getDimensionPixelSize(R.dimen.dashboard_rail_collapsed_logo_size),
         expandedLogoSize = resources.getDimensionPixelSize(R.dimen.dashboard_rail_logo_size),
-        isHomeVisible = { showingHome && binding.homeContent.visibility == View.VISIBLE },
-        focusFirstHomeContent = { focusFirstHomeCardWhenReady() }
+        canEnterFromContent = { canEnterTvDashboardRailFromContent() },
+        focusCurrentContent = { focusCurrentTvDashboardRailContent() }
     )
     tvDashboardRailController = controller
-    // This optional adapter callback remains unset for every other shelf surface and all
-    // mobile flows. It is the sole explicit DPAD_LEFT route introduced in Phase 4.2A.
+    // Every callback below is installed only on TV. Each adapter invokes it solely after its
+    // own LEFT navigation has reached a genuine outer edge.
     homeShelfAdapter.onLeftEdge = { focusedCard ->
-        controller.enterFromHome(focusedCard, binding.navRailHome)
+        controller.enterFromContent(focusedCard, binding.navRailHome)
+    }
+    categoryAdapter.onLeftEdge = { focusedRow ->
+        controller.enterFromContent(focusedRow, tvDashboardRailItemForCurrentContent())
+    }
+    liveAdapter.onLeftEdge = { focusedStar ->
+        if (binding.categorySidebar.visibility == View.VISIBLE) false
+        else controller.enterFromContent(focusedStar, tvDashboardRailItemForCurrentContent())
+    }
+    seriesShelfAdapter.onLeftEdge = { focusedCard ->
+        enterTvDashboardRailFromVodContent(focusedCard, tab = 1)
+    }
+    filmsShelfAdapter.onLeftEdge = { focusedCard ->
+        enterTvDashboardRailFromVodContent(focusedCard, tab = 2)
+    }
+    seriesGridAdapter.onLeftEdge = { focusedCard ->
+        enterTvDashboardRailFromVodContent(focusedCard, tab = 1)
+    }
+    filmsGridAdapter.onLeftEdge = { focusedCard ->
+        enterTvDashboardRailFromVodContent(focusedCard, tab = 2)
     }
     controller.install()
+}
+
+/** Browsing surfaces only: player, overlays, detail, Catch Up, Discover and downloads keep
+ * their existing directional systems and must never hand LEFT to the dashboard rail. */
+private fun MainActivity.canEnterTvDashboardRailFromContent(): Boolean =
+    deviceFormFactor == DeviceFormFactor.TV &&
+        !isPlayerVisible && !isContentDetailVisible &&
+        activeSettingsOverlay == null && activeSearchOverlay == null &&
+        !showingCatchup && !showingDiscover && !showingDownloads &&
+        binding.mainContent.visibility == View.VISIBLE
+
+/** The rail item representing the content currently visible. Guide remains part of Live in
+ * this legacy UI; Favorites is a Live category but has its own dashboard destination. */
+private fun MainActivity.tvDashboardRailItemForCurrentContent(): View = when {
+    showingHome -> binding.navRailHome
+    activeTab == 0 && selectedRowId == FAVOURITES_CATEGORY_ID -> binding.navRailFavorites
+    activeTab == 1 -> binding.navRailSeries
+    activeTab == 2 -> binding.navRailFilms
+    else -> binding.navRailLive
+}
+
+/** A VOD card is at the dashboard edge only when its own tab is visible and the category
+ * sidebar is absent. With that sidebar visible, LEFT still belongs to catalog navigation. */
+private fun MainActivity.enterTvDashboardRailFromVodContent(focusedCard: View, tab: Int): Boolean {
+    if (activeTab != tab || binding.categorySidebar.visibility == View.VISIBLE) return false
+    return tvDashboardRailController?.enterFromContent(
+        focusedCard,
+        if (tab == 1) binding.navRailSeries else binding.navRailFilms
+    ) == true
+}
+
+/** Fallback used only when the last content view was recycled while the dashboard rail owned
+ * focus. It keeps each legacy browsing surface on its own first real focus target. */
+private fun MainActivity.focusCurrentTvDashboardRailContent() {
+    when {
+        showingHome -> focusFirstHomeCardWhenReady()
+        activeTab == 0 -> focusFirstLiveChannelForDashboardRail()
+        activeTab == 1 -> focusFirstVodContentForDashboardRail(binding.seriesContent)
+        activeTab == 2 -> focusFirstVodContentForDashboardRail(binding.filmsContent)
+    }
+}
+
+private fun MainActivity.focusFirstLiveChannelForDashboardRail() {
+    fun attempt(): Boolean =
+        (binding.liveContent.findViewHolderForAdapterPosition(0) as? LiveGuideAdapter.RowViewHolder)
+            ?.requestChannelFocus() == true
+    binding.liveContent.post { if (!attempt()) binding.liveContent.post { attempt() } }
+}
+
+private fun MainActivity.focusFirstVodContentForDashboardRail(content: RecyclerView) {
+    fun attempt(): Boolean {
+        val first = content.findViewHolderForAdapterPosition(0)?.itemView ?: return false
+        if (first.requestFocus()) return true // PosterGridAdapter
+        val posters = first.findViewById<RecyclerView>(R.id.shelfItems) ?: return false
+        return posters.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus() == true
+    }
+    content.post { if (!attempt()) content.post { attempt() } }
 }
 
 /**
@@ -1735,6 +1814,7 @@ internal fun MainActivity.renderLegacyTvDashboardRailSelection() {
         showingDiscover -> {}
         showingDownloads -> {}
         showingCatchup -> binding.navRailLive.isSelected = true
+        activeTab == 0 && selectedRowId == FAVOURITES_CATEGORY_ID -> binding.navRailFavorites.isSelected = true
         activeTab == 0 -> binding.navRailLive.isSelected = true
         activeTab == 1 -> binding.navRailSeries.isSelected = true
         activeTab == 2 -> binding.navRailFilms.isSelected = true
