@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rowRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_category_panel"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="@dimen/settings_gap_ml"
+    android:stateListAnimator="@animator/focus_scale">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/rowEnabled"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:focusable="false" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/rowName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_primary"
+                android:textSize="@dimen/settings_text_body"
+                android:fontFamily="@font/inter_medium" />
+            <TextView
+                android:id="@+id/rowDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/text_secondary"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/settings_text_caption" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/rowStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_gap"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:background="@drawable/bg_toolbar_button"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/settings_text_caption"
+            android:fontFamily="@font/inter_medium" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/rowMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/settings_gap_s"
+        android:textColor="@color/text_tertiary"
+        android:textSize="@dimen/settings_text_caption"
+        android:fontFamily="@font/inter_regular" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/settings_gap_s"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <CheckBox
+            android:id="@+id/rowTvBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_toolbar_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/provider_content_tv"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/settings_text_caption" />
+        <CheckBox
+            android:id="@+id/rowMoviesBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_gap_s"
+            android:background="@drawable/bg_toolbar_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/provider_content_movies"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/settings_text_caption" />
+        <CheckBox
+            android:id="@+id/rowSeriesBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_gap_s"
+            android:background="@drawable/bg_toolbar_button"
+            android:clickable="true"
+            android:focusable="true"
+            android:text="@string/provider_content_series"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/settings_text_caption" />
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <LinearLayout
+            android:id="@+id/rowUpButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/settings_action_button_height"
+            android:background="@drawable/card_surface_background"
+            android:clickable="true" android:focusable="true"
+            android:gravity="center" android:paddingHorizontal="@dimen/settings_gap_s">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="↑" android:textColor="@color/text_primary" android:textSize="18sp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/rowDownButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/settings_action_button_height"
+            android:layout_marginStart="@dimen/settings_gap_s"
+            android:background="@drawable/card_surface_background"
+            android:clickable="true" android:focusable="true"
+            android:gravity="center" android:paddingHorizontal="@dimen/settings_gap_s">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="↓" android:textColor="@color/text_primary" android:textSize="18sp" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/rowRefreshButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/settings_action_button_height"
+            android:layout_marginStart="@dimen/settings_gap_s"
+            android:background="@drawable/card_surface_background"
+            android:clickable="true" android:focusable="true"
+            android:gravity="center" android:paddingHorizontal="@dimen/settings_gap">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/parafuso_refresh_now" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_medium" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/rowEditButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/settings_action_button_height"
+            android:layout_marginStart="@dimen/settings_gap_s"
+            android:background="@drawable/card_surface_background"
+            android:clickable="true" android:focusable="true"
+            android:gravity="center" android:paddingHorizontal="@dimen/settings_gap">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/edit" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_medium" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/rowRemoveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/settings_action_button_height"
+            android:layout_marginStart="@dimen/settings_gap_s"
+            android:background="@drawable/card_surface_background"
+            android:clickable="true" android:focusable="true"
+            android:gravity="center" android:paddingHorizontal="@dimen/settings_gap">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/remove" android:textColor="@color/live_red" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_medium" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

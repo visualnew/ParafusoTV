@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Selected chip gets the solid primary (indigo) fill, so its label flips to
+     the dark on-primary tone; default/focused keep the light surface text. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true" android:color="@color/text_on_primary" />
+    <item android:color="@color/text_primary" />
+</selector>
