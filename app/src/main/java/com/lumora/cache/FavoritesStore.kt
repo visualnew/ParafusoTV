@@ -43,7 +43,7 @@ object FavoritesStore {
         val current = readSet(context, ParafusoProfileScope.key(KEY_FAVORITE_SERIES, context))
         if (favorite == (id in current)) return false
         val updated = if (favorite) current + id else current - id
-        write(context, KEY_FAVORITE_SERIES, updated)
+        write(context, ParafusoProfileScope.key(KEY_FAVORITE_SERIES, context), updated)
         true
     }
 
