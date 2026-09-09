@@ -220,10 +220,22 @@ internal fun MainActivity.refreshDownloadsList() {
 
 // ── Tabs ───────────────────────────────────────
 
-internal fun MainActivity.selectTab(index: Int) {
+internal fun MainActivity.selectTab(
+    index: Int,
+    tvLiveDestination: TvLiveRailDestination = TvLiveRailDestination.LIVE,
+    requestedLiveCategoryId: String? = null
+) {
     activeSettingsOverlay?.dismiss()
     activeSearchOverlay?.dismiss()
+    val selectionGeneration = ++tabSelectionGeneration
     activeTab = index
+    // Live and Guide deliberately reuse the established EPG surface. Every ordinary tab
+    // change remains normal Live, while the Guide rail entry supplies its explicit context.
+    tvLiveRailDestination = if (deviceFormFactor == DeviceFormFactor.TV && index == 0) {
+        tvLiveDestination
+    } else {
+        TvLiveRailDestination.LIVE
+    }
     showingDownloads = false
     showingDiscover = false
     hideCatchup()
@@ -304,7 +316,7 @@ internal fun MainActivity.selectTab(index: Int) {
         // sidebar and the content row back on screen unconditionally, so landing late
         // dropped this tab's sidebar on top of whatever the user had moved to - most
         // visibly Discover, which has no sidebar of its own to overwrite it.
-        if (activeTab != index || showingHome || showingDiscover || showingDownloads) {
+        if (selectionGeneration != tabSelectionGeneration || activeTab != index || showingHome || showingDiscover || showingDownloads) {
             setStatus("", visible = false)
             return@launch
         }
@@ -314,8 +326,14 @@ internal fun MainActivity.selectTab(index: Int) {
             // dynamic bucket (Sports etc). Pinned rows used to be skipped entirely
             // whenever no channel was favourited, which dropped the user into Sports
             // past the categories they'd deliberately pinned to the top.
+            // A dashboard Favorites request is consumed only after the existing asynchronous
+            // category build completes. This replaces the former guessed delay.
+            val requestedTarget = requestedLiveCategoryId?.let { requestedId ->
+                categories.firstOrNull { it.id == requestedId }
+            }
             val hasFavourites = com.lumora.cache.FavoritesStore.getFavoriteChannelIds(this@selectTab).isNotEmpty()
-            val target = categories.firstOrNull { it.id == FAVOURITES_CATEGORY_ID }?.takeIf { hasFavourites }
+            val target = requestedTarget
+                ?: categories.firstOrNull { it.id == FAVOURITES_CATEGORY_ID }?.takeIf { hasFavourites }
                 ?: categories.firstOrNull { it.pinned }
                 ?: categories.firstOrNull { it.id?.startsWith(DYNAMIC_BUCKET_ID_PREFIX) == true }
             if (target != null) {
@@ -324,6 +342,12 @@ internal fun MainActivity.selectTab(index: Int) {
                 selectedBrandChannelIds = target.channelIds.ifEmpty { null }
                 selectedCategoryIds = if (target.channelIds.isNotEmpty()) null else target.matchIds
             }
+            // When every favorite is absent or blocked, retain the normal Live landing state
+            // rather than a stale synthetic Favorites destination.
+            if (requestedLiveCategoryId == FAVOURITES_CATEGORY_ID && requestedTarget == null) {
+                tvLiveRailDestination = TvLiveRailDestination.LIVE
+            }
+            updateDashboardRailSelection()
         }
         submitCategories(categories)
         applyCategoryFilter(focusFirstLiveChannel = index == 0)

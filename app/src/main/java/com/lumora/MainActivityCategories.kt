@@ -41,6 +41,12 @@ import com.lumora.util.groupLiveQualityVersions
 import com.lumora.util.DeviceFormFactor
 import kotlinx.coroutines.*
 
+/** TV rail destinations that share the established Live EPG surface. */
+internal enum class TvLiveRailDestination {
+    LIVE,
+    GUIDE
+}
+
 // ── Category rail, tabs & side-menu drill-down ──
 //
 // Extracted from MainActivity.kt; see that file's header.
@@ -1312,10 +1318,18 @@ internal suspend fun MainActivity.applyCategoryFilter(focusFirstLiveChannel: Boo
             val source = liveChannels
             val isFavourites = selectedRowId == FAVOURITES_CATEGORY_ID
             val favoriteIds = if (isFavourites) FavoritesStore.getFavoriteChannelIds(this) else emptySet()
+            // buildCategoriesForActiveTab() already excludes these profile-scoped categories
+            // when it builds the visible Live rows. Favourites reads the store directly, so
+            // carry that same exclusion through its special filter path.
+            val blockedCategories = if (isFavourites) profileSession.blockedCategories() else emptySet()
             val brandIds = selectedBrandChannelIds
             val filtered = withContext(Dispatchers.Default) {
                 when {
-                    isFavourites -> source.filter { it.id in favoriteIds }
+                    isFavourites -> source.filter { item ->
+                        item.id in favoriteIds &&
+                            (blockedCategories.isEmpty() || item.categoryName.isNullOrBlank() ||
+                                item.categoryName !in blockedCategories)
+                    }
                     brandIds != null && matchIds != null ->
                         source.filter { it.id in brandIds || it.filterKey() in matchIds }
                     brandIds != null -> source.filter { it.id in brandIds }
@@ -1491,6 +1505,9 @@ internal fun MainActivity.onCategorySelected(category: CategoryFilter) {
         }
         return
     }
+    // A concrete Live category selection leaves the Guide entry context. The synthetic
+    // Favourites row remains distinct through selectedRowId below.
+    if (activeTab == 0) tvLiveRailDestination = TvLiveRailDestination.LIVE
     // A tap on a parent row always toggles its expansion (and selects it) - the old
     // select-first-toggle-on-second-tap scheme read as "collapse needs a double
     // click". category.expanded is the pre-tap state the row was bound with.
@@ -1645,31 +1662,14 @@ internal fun MainActivity.installLegacyMobileDashboardChrome() {
 /** Existing TV rail actions remain Activity-owned navigation wiring. */
 private fun MainActivity.installLegacyTvDashboardNavigationActions() {
     binding.navRailHome.setOnClickListener { selectHome() }
-    binding.navRailLive.setOnClickListener { selectTab(0) }
+    binding.navRailLive.setOnClickListener { selectTab(0, TvLiveRailDestination.LIVE) }
     binding.navRailFilms.setOnClickListener { selectTab(2) }
     binding.navRailSeries.setOnClickListener { selectTab(1) }
-    binding.navRailGuide.setOnClickListener { selectTab(0) }
+    binding.navRailGuide.setOnClickListener { selectTab(0, TvLiveRailDestination.GUIDE) }
     binding.navRailFavorites.setOnClickListener {
-        // Favorites are already a first-class synthetic category in the existing catalog.
-        // Open the catalog and focus the Favorites category when available.
-        selectTab(0)
-        scope.launch {
-            delay(250)
-            val categories = buildCategoriesForActiveTab(0)
-            val target = categories.firstOrNull { it.id == FAVOURITES_CATEGORY_ID }
-            if (target != null && activeTab == 0 && !showingHome) {
-                selectedRowId = target.id
-                selectedCategoryLabel = target.name
-                selectedCategoryIds = null
-                selectedBrandChannelIds = null
-                updateDashboardRailSelection()
-                applyCategoryFilter(focusFirstLiveChannel = true)
-                binding.categorySidebar.post {
-                    val pos = categories.indexOfFirst { it.id == FAVOURITES_CATEGORY_ID }
-                    if (pos >= 0) binding.categorySidebar.scrollToPosition(pos)
-                }
-            }
-        }
+        // The request is consumed after selectTab() finishes its own category build; never
+        // attempt to race it with a guessed time delay.
+        selectTab(0, requestedLiveCategoryId = FAVOURITES_CATEGORY_ID)
     }
     binding.navRailRecordings.setOnClickListener { showRecordingsPanel() }
     binding.navRailSettings.setOnClickListener { binding.btnSettings.performClick() }
@@ -1740,6 +1740,7 @@ private fun MainActivity.canEnterTvDashboardRailFromContent(): Boolean =
  * this legacy UI; Favorites is a Live category but has its own dashboard destination. */
 internal fun MainActivity.tvDashboardRailItemForCurrentContent(): View = when {
     showingHome -> binding.navRailHome
+    activeTab == 0 && tvLiveRailDestination == TvLiveRailDestination.GUIDE -> binding.navRailGuide
     activeTab == 0 && selectedRowId == FAVOURITES_CATEGORY_ID -> binding.navRailFavorites
     activeTab == 1 -> binding.navRailSeries
     activeTab == 2 -> binding.navRailFilms
@@ -1826,6 +1827,7 @@ internal fun MainActivity.renderLegacyTvDashboardRailSelection() {
         showingDiscover -> {}
         showingDownloads -> {}
         showingCatchup -> binding.navRailLive.isSelected = true
+        activeTab == 0 && tvLiveRailDestination == TvLiveRailDestination.GUIDE -> binding.navRailGuide.isSelected = true
         activeTab == 0 && selectedRowId == FAVOURITES_CATEGORY_ID -> binding.navRailFavorites.isSelected = true
         activeTab == 0 -> binding.navRailLive.isSelected = true
         activeTab == 1 -> binding.navRailSeries.isSelected = true
@@ -1966,6 +1968,7 @@ internal fun MainActivity.selectHome() {
     activeSettingsOverlay?.dismiss()
     activeSearchOverlay?.dismiss()
     showingHome = true
+    tvLiveRailDestination = TvLiveRailDestination.LIVE
     showingDownloads = false
     showingDiscover = false
     hideCatchup()
@@ -2364,6 +2367,7 @@ internal fun MainActivity.onSideMenuCategoryClicked(category: CategoryFilter) {
     // belonged to a section other than the one on screen.
     scope.launch {
         if (tab != activeTab) selectTab(tab)
+        if (tab == 0) tvLiveRailDestination = TvLiveRailDestination.LIVE
         selectedShelfItems = null
         selectedRowId = category.id
         selectedCategoryLabel = category.name
