@@ -322,8 +322,8 @@ internal fun MainActivity.computeDerivedContent(allChannels: List<Channel>): Mai
 internal fun MainActivity.deriveLiveHalf(list: List<Channel>) {
     val startedAt = System.currentTimeMillis()
     val hideAdult = prefs.getBoolean(PREF_HIDE_ADULT, true)
-    val useClassic = prefs.getBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, false)
-    val groupChannels = prefs.getBoolean(PREF_GROUP_CHANNELS, true)
+    val useClassic = profilePreferences.getBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, false)
+    val groupChannels = profilePreferences.getBoolean(PREF_GROUP_CHANNELS, true)
 
     // Same catalogue, same prefs, same answer - restore last time's grouping instead of
     // re-running it (see DerivedCache).
@@ -385,10 +385,10 @@ internal fun MainActivity.perf(stage: String, startedAt: Long, detail: String = 
 
 internal fun MainActivity.deriveFilmsSeriesHalf(list: List<Channel>): MainActivity.FilmsSeriesContent {
     val startedAt = System.currentTimeMillis()
-    val hideNonEnglish = prefs.getBoolean(PREF_HIDE_NON_ENGLISH, true)
+    val hideNonEnglish = profilePreferences.getBoolean(PREF_HIDE_NON_ENGLISH, true)
     val hideAdult = prefs.getBoolean(PREF_HIDE_ADULT, true)
-    val groupChannels = prefs.getBoolean(PREF_GROUP_CHANNELS, true)
-    val categorizeVod = prefs.getBoolean(PREF_CATEGORIZE_VOD, true)
+    val groupChannels = profilePreferences.getBoolean(PREF_GROUP_CHANNELS, true)
+    val categorizeVod = profilePreferences.getBoolean(PREF_CATEGORIZE_VOD, true)
     fun isAdult(ch: Channel) = hideAdult && isAdultCategory(ch.categoryName, ch.group)
 
     // One pass, not four: the chained filter/filterNot/map each walked the whole 50k+

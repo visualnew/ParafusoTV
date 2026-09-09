@@ -33,6 +33,19 @@ internal class ProfilePreferences internal constructor(
         storage.putString(scopedKey(key), value)
     }
 
+    internal fun getBoolean(key: String, defaultValue: Boolean): Boolean {
+        val scopedKey = scopedKey(key)
+        return when {
+            storage.contains(scopedKey) -> storage.getBoolean(scopedKey) ?: defaultValue
+            profileId() == LEGACY_PROFILE_ID -> storage.getBoolean(key) ?: defaultValue
+            else -> defaultValue
+        }
+    }
+
+    internal fun putBoolean(key: String, value: Boolean) {
+        storage.putBoolean(scopedKey(key), value)
+    }
+
     internal fun getStringSet(key: String, defaultValue: Set<String> = emptySet()): Set<String> {
         val scopedKey = scopedKey(key)
         val value = when {
@@ -62,8 +75,10 @@ internal class ProfilePreferences internal constructor(
     internal interface Storage {
         fun contains(key: String): Boolean
         fun getString(key: String): String?
+        fun getBoolean(key: String): Boolean?
         fun getStringSet(key: String): Set<String>?
         fun putString(key: String, value: String)
+        fun putBoolean(key: String, value: Boolean)
         fun putStringSet(key: String, value: Set<String>)
     }
 
@@ -74,10 +89,17 @@ internal class ProfilePreferences internal constructor(
 
         override fun getString(key: String): String? = sharedPreferences.getString(key, null)
 
+        override fun getBoolean(key: String): Boolean? =
+            if (sharedPreferences.contains(key)) sharedPreferences.getBoolean(key, false) else null
+
         override fun getStringSet(key: String): Set<String>? = sharedPreferences.getStringSet(key, null)
 
         override fun putString(key: String, value: String) {
             sharedPreferences.edit().putString(key, value).apply()
+        }
+
+        override fun putBoolean(key: String, value: Boolean) {
+            sharedPreferences.edit().putBoolean(key, value).apply()
         }
 
         override fun putStringSet(key: String, value: Set<String>) {

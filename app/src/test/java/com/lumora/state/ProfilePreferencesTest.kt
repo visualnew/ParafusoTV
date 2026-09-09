@@ -35,6 +35,23 @@ class ProfilePreferencesTest {
     }
 
     @Test
+    fun `boolean values retain their defaults and follow the same profile fallback`() {
+        val storage = FakeStorage(booleans = mutableMapOf("group_channels" to false))
+        var activeProfileId = 1
+        val preferences = ProfilePreferences(storage) { activeProfileId }
+
+        assertFalse(preferences.getBoolean("group_channels", true))
+        preferences.putBoolean("group_channels", true)
+        assertTrue(preferences.getBoolean("group_channels", false))
+        activeProfileId = 2
+        assertTrue(preferences.getBoolean("group_channels", true))
+        preferences.putBoolean("group_channels", false)
+
+        assertFalse(storage.booleans["group_channels_profile_2"] ?: true)
+        assertFalse(preferences.getBoolean("group_channels", true))
+    }
+
+    @Test
     fun `first write creates the active profile namespace`() {
         val storage = FakeStorage(strings = mutableMapOf("list" to "legacy"))
         val preferences = ProfilePreferences(storage) { 2 }
@@ -74,16 +91,23 @@ class ProfilePreferencesTest {
 
     private class FakeStorage(
         val strings: MutableMap<String, String> = mutableMapOf(),
+        val booleans: MutableMap<String, Boolean> = mutableMapOf(),
         val stringSets: MutableMap<String, Set<String>> = mutableMapOf()
     ) : ProfilePreferences.Storage {
-        override fun contains(key: String): Boolean = key in strings || key in stringSets
+        override fun contains(key: String): Boolean = key in strings || key in booleans || key in stringSets
 
         override fun getString(key: String): String? = strings[key]
+
+        override fun getBoolean(key: String): Boolean? = booleans[key]
 
         override fun getStringSet(key: String): Set<String>? = stringSets[key]?.toSet()
 
         override fun putString(key: String, value: String) {
             strings[key] = value
+        }
+
+        override fun putBoolean(key: String, value: Boolean) {
+            booleans[key] = value
         }
 
         override fun putStringSet(key: String, value: Set<String>) {

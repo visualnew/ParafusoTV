@@ -1375,6 +1375,9 @@ class MainActivity : AppCompatActivity() {
     private fun activateProfileAfterAuthorization(destination: ParafusoProfile, chooser: Dialog) {
         profileSession.activate(destination.id)
         chooser.dismiss()
+        // Catalog derivation and row caches depend on personal filtering/grouping preferences.
+        // Preserve the current surface while recomputing them for the newly active profile.
+        if (allChannels.isNotEmpty()) scope.launch { classifyAndShow(preserveUi = true) }
     }
 
     private fun showCreateProfileDialog(store: ParafusoProfileStore, parent: Dialog) {

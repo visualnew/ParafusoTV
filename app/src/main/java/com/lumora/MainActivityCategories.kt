@@ -529,8 +529,8 @@ internal suspend fun MainActivity.buildCategoriesForActiveTab(tab: Int = activeT
         2 -> filmVersions
         else -> emptyMap()
     }
-    val useClassicLayout = tab == 0 && prefs.getBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, false)
-    val categorize = if (tab == 0) prefs.getBoolean(PREF_CATEGORIZE_LIVE, true) else prefs.getBoolean(PREF_CATEGORIZE_VOD, true)
+    val useClassicLayout = tab == 0 && profilePreferences.getBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, false)
+    val categorize = if (tab == 0) profilePreferences.getBoolean(PREF_CATEGORIZE_LIVE, true) else profilePreferences.getBoolean(PREF_CATEGORIZE_VOD, true)
     // Synthetic Films/Series sidebar rows are computed on the same Default thread as the
     // category pipeline: newestByDate sorts the whole tab list, and seriesContinueItems()/
     // seriesUpNextItems() read the position store and scan the catalogue for parent series.
@@ -1464,8 +1464,8 @@ internal fun MainActivity.onCategorySelected(category: CategoryFilter) {
         return
     }
     if (category.id == CLASSIC_LAYOUT_TOGGLE_ID) {
-        val useClassic = prefs.getBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, false)
-        prefs.edit().putBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, !useClassic).apply()
+        val useClassic = profilePreferences.getBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, false)
+        profilePreferences.putBoolean(PREF_CLASSIC_CATEGORY_LAYOUT, !useClassic)
         val newClassic = !useClassic
         scope.launch {
             // Classic mode shows ALL live channels flat (no version grouping), so
@@ -1477,7 +1477,7 @@ internal fun MainActivity.onCategorySelected(category: CategoryFilter) {
             val snapshot = allChannels
             val rawLive = snapshot.filter { it.mediaType == MediaType.LIVE && !it.name.contains("##") }
                 .filterNot { hideAdult && isAdultCategory(it.categoryName, it.group) }
-            if (newClassic || !prefs.getBoolean(PREF_GROUP_CHANNELS, true)) {
+            if (newClassic || !profilePreferences.getBoolean(PREF_GROUP_CHANNELS, true)) {
                 liveChannels = rawLive
                 liveVersions = emptyMap()
             } else {

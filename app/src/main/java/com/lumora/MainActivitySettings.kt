@@ -1491,9 +1491,9 @@ internal fun MainActivity.showProviderSettings() {
         subscriptionStatus.visibility = View.VISIBLE
     }
 
-    hideNonEnglish.isChecked = prefs.getBoolean(PREF_HIDE_NON_ENGLISH, true)
+    hideNonEnglish.isChecked = profilePreferences.getBoolean(PREF_HIDE_NON_ENGLISH, true)
     hideNonEnglish.setOnCheckedChangeListener { _, checked ->
-        prefs.edit().putBoolean(PREF_HIDE_NON_ENGLISH, checked).apply()
+        profilePreferences.putBoolean(PREF_HIDE_NON_ENGLISH, checked)
         if (allChannels.isNotEmpty()) scope.launch { classifyAndShow() }
     }
 
@@ -1527,21 +1527,21 @@ internal fun MainActivity.showProviderSettings() {
     }
 
     val categorizeLive = dialogView.findViewById<CheckBox>(R.id.settingsCategorizeLive)
-    categorizeLive.isChecked = prefs.getBoolean(PREF_CATEGORIZE_LIVE, true)
+    categorizeLive.isChecked = profilePreferences.getBoolean(PREF_CATEGORIZE_LIVE, true)
     categorizeLive.setOnCheckedChangeListener { _, checked ->
-        prefs.edit().putBoolean(PREF_CATEGORIZE_LIVE, checked).apply()
+        profilePreferences.putBoolean(PREF_CATEGORIZE_LIVE, checked)
         if (allChannels.isNotEmpty()) scope.launch { classifyAndShow() }
     }
     val categorizeVod = dialogView.findViewById<CheckBox>(R.id.settingsCategorizeVod)
-    categorizeVod.isChecked = prefs.getBoolean(PREF_CATEGORIZE_VOD, true)
+    categorizeVod.isChecked = profilePreferences.getBoolean(PREF_CATEGORIZE_VOD, true)
     categorizeVod.setOnCheckedChangeListener { _, checked ->
-        prefs.edit().putBoolean(PREF_CATEGORIZE_VOD, checked).apply()
+        profilePreferences.putBoolean(PREF_CATEGORIZE_VOD, checked)
         if (allChannels.isNotEmpty()) scope.launch { classifyAndShow() }
     }
     val groupChannelsBox = dialogView.findViewById<CheckBox>(R.id.settingsGroupChannels)
-    groupChannelsBox.isChecked = prefs.getBoolean(PREF_GROUP_CHANNELS, true)
+    groupChannelsBox.isChecked = profilePreferences.getBoolean(PREF_GROUP_CHANNELS, true)
     groupChannelsBox.setOnCheckedChangeListener { _, checked ->
-        prefs.edit().putBoolean(PREF_GROUP_CHANNELS, checked).apply()
+        profilePreferences.putBoolean(PREF_GROUP_CHANNELS, checked)
         if (allChannels.isNotEmpty()) scope.launch { classifyAndShow() }
     }
 
