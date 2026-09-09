@@ -47,20 +47,42 @@ import kotlinx.coroutines.withContext
  *
  * Null means "no usable session": not signed in, unconfigured build, or a refresh that failed.
  */
-internal suspend fun MainActivity.traktAccessToken(): String? {
+internal fun MainActivity.activeTraktProfileId(): Int = ParafusoProfileScope.activeId(this)
+
+private fun MainActivity.isTraktProfileCurrent(profileId: Int): Boolean =
+    TraktStore.isCurrentProfile(profileId, activeTraktProfileId())
+
+/** Drops only ephemeral work/state that must never follow a profile switch. */
+internal fun MainActivity.resetTraktForProfileChange() {
+    traktSignInJob?.cancel()
+    traktSignInJob = null
+    traktResolveJob?.cancel()
+    traktResolveJob = null
+    traktScrobbleJobs.forEach { it.cancel() }
+    traktScrobbleJobs.clear()
+    traktScrobbleTarget = null
+    traktScrobbleForKey = null
+    traktLastReportedPaused = null
+}
+
+internal suspend fun MainActivity.traktAccessToken(profileId: Int): String? {
+    if (!isTraktProfileCurrent(profileId)) return null
     if (!TraktClient.isConfigured) return null
-    val tokens = TraktStore.tokens(prefs) ?: return null
+    val tokens = TraktStore.tokens(prefs, profileId) ?: return null
     // A day's grace: the refresh is cheap and a token that expires mid-play would otherwise
     // fail the stop report, which is the one report that matters.
-    if (tokens.expiresAtMs - System.currentTimeMillis() > 24 * 60 * 60 * 1000L) return tokens.accessToken
+    if (tokens.expiresAtMs - System.currentTimeMillis() > 24 * 60 * 60 * 1000L) {
+        return tokens.accessToken.takeIf { isTraktProfileCurrent(profileId) }
+    }
 
     val refreshed = traktClient.refresh(tokens.refreshToken)
+    if (!isTraktProfileCurrent(profileId)) return null
     if (refreshed != null) {
-        TraktStore.saveTokens(prefs, refreshed)
+        TraktStore.saveTokens(prefs, profileId, refreshed)
         return refreshed.accessToken
     }
     if (traktClient.lastRefreshWasRejected) {
-        TraktStore.clear(prefs)
+        TraktStore.clear(prefs, profileId)
         return null
     }
     // Network failure - the stored token may still have days on it, so let the call try.
@@ -68,7 +90,7 @@ internal suspend fun MainActivity.traktAccessToken(): String? {
 }
 
 internal fun MainActivity.isTraktSignedIn(): Boolean =
-    TraktClient.isConfigured && TraktStore.isSignedIn(prefs)
+    TraktClient.isConfigured && TraktStore.isSignedIn(prefs, activeTraktProfileId())
 
 // ── Identifying a title to Trakt ────────────────
 
@@ -134,17 +156,19 @@ internal fun MainActivity.traktReportStart(channel: Channel) {
     traktScrobbleTarget = null
     traktScrobbleForKey = null
     traktLastReportedPaused = null
-    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs)) return
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs, profileId)) return
     if (channel.mediaType == MediaType.LIVE) return
 
     val key = playKey(channel)
     traktResolveJob = scope.launch {
         val target = traktTargetFor(channel) ?: return@launch
+        if (!isTraktProfileCurrent(profileId)) return@launch
         // Something else started while the lookup ran - that play owns the scrobble now.
         if (playKey(nowPlayingChannel ?: return@launch) != key) return@launch
         traktScrobbleTarget = target
         traktScrobbleForKey = key
-        traktSend(TraktClient.ScrobbleAction.START, target, traktProgressPercent())
+        traktSend(profileId, TraktClient.ScrobbleAction.START, target, traktProgressPercent())
         traktLastReportedPaused = false
     }
 }
@@ -156,11 +180,13 @@ internal fun MainActivity.traktReportStart(channel: Channel) {
  */
 internal fun MainActivity.traktReportProgress() {
     val target = traktScrobbleTarget ?: return
-    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs)) return
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs, profileId)) return
     val paused = !playerManager.isPlaying
     if (paused == traktLastReportedPaused) return
     traktLastReportedPaused = paused
     traktSend(
+        profileId,
         if (paused) TraktClient.ScrobbleAction.PAUSE else TraktClient.ScrobbleAction.START,
         target,
         traktProgressPercent()
@@ -181,8 +207,9 @@ internal fun MainActivity.traktReportStopped() {
     traktScrobbleForKey = null
     traktLastReportedPaused = null
     if (target == null) return
-    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs)) return
-    traktSend(TraktClient.ScrobbleAction.STOP, target, progress)
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs, profileId)) return
+    traktSend(profileId, TraktClient.ScrobbleAction.STOP, target, progress)
 }
 
 /** Percent through the item, 0-100. Zero when the duration isn't known yet (a live stream, or
@@ -196,14 +223,18 @@ private fun MainActivity.traktProgressPercent(): Double {
 }
 
 private fun MainActivity.traktSend(
+    profileId: Int,
     action: TraktClient.ScrobbleAction,
     target: TraktClient.ScrobbleTarget,
     progress: Double
 ) {
-    scope.launch(Dispatchers.IO) {
-        val token = traktAccessToken() ?: return@launch
+    val job = scope.launch(Dispatchers.IO) {
+        val token = traktAccessToken(profileId) ?: return@launch
+        if (!isTraktProfileCurrent(profileId)) return@launch
         runCatching { traktClient.scrobble(token, action, target, progress) }
     }
+    traktScrobbleJobs.add(job)
+    job.invokeOnCompletion { traktScrobbleJobs.remove(job) }
 }
 
 // ── Continue Watching ───────────────────────────
@@ -226,11 +257,13 @@ private fun MainActivity.traktSend(
  */
 internal fun MainActivity.traktRemovePlayback(items: List<Channel>) {
     if (items.isEmpty()) return
-    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs)) return
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isScrobbleEnabled(prefs, profileId)) return
     val subjects = items.filter { it.mediaType != MediaType.LIVE }
     if (subjects.isEmpty()) return
     scope.launch {
-        val token = traktAccessToken() ?: return@launch
+        val token = traktAccessToken(profileId) ?: return@launch
+        if (!isTraktProfileCurrent(profileId)) return@launch
         // Read the list first: no resolution work is worth doing for an account with nothing
         // paused, which is the common case right after a clear-all.
         val entries = traktClient.playback(token)
@@ -238,6 +271,7 @@ internal fun MainActivity.traktRemovePlayback(items: List<Channel>) {
         val wanted = entries.map { it.target }.toSet()
         val targets = mutableSetOf<TraktClient.ScrobbleTarget>()
         for (item in subjects) {
+            if (!isTraktProfileCurrent(profileId)) return@launch
             val target = traktTargetFor(item) ?: continue
             // Each resolve is a TMDB lookup; stop as soon as every paused entry is accounted
             // for rather than walking a long clear-all list to no purpose.
@@ -246,6 +280,7 @@ internal fun MainActivity.traktRemovePlayback(items: List<Channel>) {
         }
         if (targets.isEmpty()) return@launch
         for (entry in entries) {
+            if (!isTraktProfileCurrent(profileId)) return@launch
             if (entry.target in targets) traktClient.removePlayback(token, entry.id)
         }
     }
@@ -262,11 +297,14 @@ internal fun MainActivity.traktRemovePlayback(items: List<Channel>) {
  * against it, so the overlap is harmless.
  */
 internal fun MainActivity.pushWatchedToTrakt(item: Channel, watched: Boolean) {
-    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs)) return
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs, profileId)) return
     if (item.mediaType == MediaType.LIVE) return
     scope.launch {
         val target = traktTargetFor(item) ?: return@launch
-        val token = traktAccessToken() ?: return@launch
+        if (!isTraktProfileCurrent(profileId)) return@launch
+        val token = traktAccessToken(profileId) ?: return@launch
+        if (!isTraktProfileCurrent(profileId)) return@launch
         withContext(Dispatchers.IO) {
             runCatching {
                 if (watched) traktClient.addToHistory(token, target)
@@ -294,38 +332,45 @@ internal fun MainActivity.pushWatchedToTrakt(item: Channel, watched: Boolean) {
  * Settings pane's "Sync now", which means now.
  */
 internal fun MainActivity.pullTraktWatched(force: Boolean = false, onDone: ((Int) -> Unit)? = null) {
-    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs)) {
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs, profileId)) {
         onDone?.invoke(0)
         return
     }
-    if (!force && System.currentTimeMillis() - TraktStore.lastWatchedPullMs(prefs) < PULL_INTERVAL_MS) {
+    if (!force && System.currentTimeMillis() - TraktStore.lastWatchedPullMs(prefs, profileId) < PULL_INTERVAL_MS) {
         onDone?.invoke(0)
         return
     }
     scope.launch {
-        val token = traktAccessToken() ?: run { onDone?.invoke(0); return@launch }
+        val token = traktAccessToken(profileId) ?: run { if (isTraktProfileCurrent(profileId)) onDone?.invoke(0); return@launch }
+        if (!isTraktProfileCurrent(profileId)) return@launch
         val entries = withContext(Dispatchers.IO) {
             runCatching { traktClient.watched(token) }.getOrDefault(emptyList())
         }
+        if (!isTraktProfileCurrent(profileId)) return@launch
         if (entries.isEmpty()) { onDone?.invoke(0); return@launch }
         val added = withContext(Dispatchers.Default) {
             var count = 0
             for (entry in entries) {
+                if (!isTraktProfileCurrent(profileId)) return@withContext null
                 if (entry.isSeries) {
                     for ((season, numbers) in entry.episodes) {
                         for (number in numbers) {
+                            if (!isTraktProfileCurrent(profileId)) return@withContext null
                             val key = episodeWatchedKey(entry.title, season, number) ?: continue
                             if (WatchedStore.setWatched(this@pullTraktWatched, key, true)) count++
                         }
                     }
                 } else {
+                    if (!isTraktProfileCurrent(profileId)) return@withContext null
                     val key = movieWatchedKey(entry.title) ?: continue
                     if (WatchedStore.setWatched(this@pullTraktWatched, key, true)) count++
                 }
             }
             count
         }
-        TraktStore.markWatchedPulled(prefs)
+        if (!isTraktProfileCurrent(profileId) || added == null) return@launch
+        TraktStore.markWatchedPulled(prefs, profileId)
         if (added > 0) {
             // Watched state decides what "next episode" means, so the memo behind Up Next is
             // stale the moment any mark lands.
@@ -420,12 +465,14 @@ private const val BACKFILL_RESOLVE_BUDGET = 150
  * all. That, plus the id memo, is what makes this safe to wire into the ordinary Sync now.
  */
 internal fun MainActivity.pushExistingWatchedToTrakt(onDone: ((pushed: Int, unresolved: Int) -> Unit)? = null) {
-    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs)) {
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs, profileId)) {
         onDone?.invoke(0, 0)
         return
     }
     scope.launch {
-        val token = traktAccessToken() ?: run { onDone?.invoke(0, 0); return@launch }
+        val token = traktAccessToken(profileId) ?: run { if (isTraktProfileCurrent(profileId)) onDone?.invoke(0, 0); return@launch }
+        if (!isTraktProfileCurrent(profileId)) return@launch
 
         // What Trakt already has, so nothing is sent twice.
         val remote = withContext(Dispatchers.IO) {
@@ -439,13 +486,14 @@ internal fun MainActivity.pushExistingWatchedToTrakt(onDone: ((pushed: Int, unre
             val seasons = remoteEpisodes.getOrPut(id) { HashMap() }
             for ((season, numbers) in entry.episodes) seasons.getOrPut(season) { mutableSetOf() }.addAll(numbers)
         }
+        if (!isTraktProfileCurrent(profileId)) return@launch
 
         // Normalised title -> a real title (and year) to search TMDB with. The catalogue first,
         // then position-store snapshots for anything that has since left it.
         val titleIndex = withContext(Dispatchers.Default) { buildWatchedTitleIndex() }
         val keys = withContext(Dispatchers.IO) { WatchedStore.allKeys(this@pushExistingWatchedToTrakt) }
 
-        val memo = HashMap(TraktStore.idMemo(prefs))
+        val memo = HashMap(TraktStore.idMemo(prefs, profileId))
         var budget = BACKFILL_RESOLVE_BUDGET
         var unresolved = 0
         val movies = HashSet<Int>()
@@ -453,6 +501,7 @@ internal fun MainActivity.pushExistingWatchedToTrakt(onDone: ((pushed: Int, unre
 
         /** Resolved tmdb id for a normalised title, memoised - including the misses. */
         suspend fun tmdbIdFor(normalized: String, isSeries: Boolean): Int? {
+            if (!isTraktProfileCurrent(profileId)) return null
             val memoKey = (if (isSeries) "e|" else "m|") + normalized
             memo[memoKey]?.let { return it.takeIf { id -> id > 0 } }
             val known = titleIndex[memoKey] ?: return null
@@ -464,6 +513,7 @@ internal fun MainActivity.pushExistingWatchedToTrakt(onDone: ((pushed: Int, unre
         }
 
         for (key in keys) {
+            if (!isTraktProfileCurrent(profileId)) return@launch
             val parts = key.split('|')
             when {
                 parts.size == 2 && parts[0] == "m" -> {
@@ -482,7 +532,8 @@ internal fun MainActivity.pushExistingWatchedToTrakt(onDone: ((pushed: Int, unre
                 }
             }
         }
-        TraktStore.saveIdMemo(prefs, memo)
+        if (!isTraktProfileCurrent(profileId)) return@launch
+        TraktStore.saveIdMemo(prefs, profileId, memo)
 
         if (movies.isEmpty() && shows.isEmpty()) {
             onDone?.invoke(0, unresolved)
@@ -491,6 +542,7 @@ internal fun MainActivity.pushExistingWatchedToTrakt(onDone: ((pushed: Int, unre
         val ok = withContext(Dispatchers.IO) {
             runCatching { traktClient.addWatchedBatch(token, movies, shows) }.getOrDefault(false)
         }
+        if (!isTraktProfileCurrent(profileId)) return@launch
         val pushed = if (ok) movies.size + shows.values.sumOf { seasons -> seasons.values.sumOf { it.size } } else 0
         onDone?.invoke(pushed, unresolved)
     }
@@ -504,10 +556,13 @@ internal fun MainActivity.pushExistingWatchedToTrakt(onDone: ((pushed: Int, unre
  * the pull is one the push then correctly skips instead of echoing straight back.
  */
 internal fun MainActivity.traktSyncBothWays(onStatus: ((String) -> Unit)? = null) {
-    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs)) return
+    val profileId = activeTraktProfileId()
+    if (!isTraktSignedIn() || !TraktStore.isWatchedSyncEnabled(prefs, profileId)) return
     pullTraktWatched(force = true) { pulled ->
+        if (!isTraktProfileCurrent(profileId)) return@pullTraktWatched
         onStatus?.invoke(getString(R.string.trakt_pushing))
         pushExistingWatchedToTrakt { pushed, unresolved ->
+            if (!isTraktProfileCurrent(profileId)) return@pushExistingWatchedToTrakt
             onStatus?.invoke(
                 if (unresolved > 0) getString(R.string.trakt_synced_both_partial, pulled, pushed, unresolved)
                 else getString(R.string.trakt_synced_both, pulled, pushed)
@@ -576,6 +631,7 @@ internal suspend fun MainActivity.performTraktSignIn(
     onCode: (String?) -> Unit = {},
     onStatus: (String) -> Unit
 ): Boolean {
+    val profileId = activeTraktProfileId()
     if (!TraktClient.isConfigured) {
         onStatus(getString(R.string.trakt_not_configured))
         return false
@@ -616,11 +672,13 @@ internal suspend fun MainActivity.performTraktSignIn(
         return false
     }
 
-    TraktStore.saveTokens(prefs, session)
+    if (!isTraktProfileCurrent(profileId)) return false
+    TraktStore.saveTokens(prefs, profileId, session)
     val username = withContext(Dispatchers.IO) {
         runCatching { traktClient.username(session.accessToken) }.getOrNull()
     }
-    TraktStore.saveUsername(prefs, username)
+    if (!isTraktProfileCurrent(profileId)) return false
+    TraktStore.saveUsername(prefs, profileId, username)
     onStatus(
         if (username != null) getString(R.string.trakt_signed_in_as, username)
         else getString(R.string.trakt_signed_in)
@@ -633,8 +691,9 @@ internal suspend fun MainActivity.performTraktSignIn(
 }
 
 internal fun MainActivity.traktSignOut() {
-    val token = TraktStore.tokens(prefs)?.accessToken
-    TraktStore.clear(prefs)
+    val profileId = activeTraktProfileId()
+    val token = TraktStore.tokens(prefs, profileId)?.accessToken
+    TraktStore.clear(prefs, profileId)
     traktScrobbleTarget = null
     traktScrobbleForKey = null
     traktLastReportedPaused = null
@@ -707,22 +766,26 @@ internal fun MainActivity.wireTraktPane(dialogView: View) {
         // Gated on the toggle, not just on being signed in: traktSyncBothWays does nothing
         // while watched sync is off, so a visible row here was a dead end - it set the status
         // to "Syncing…" and then nothing ever completed to replace it.
-        val canSync = signedIn && TraktStore.isWatchedSyncEnabled(prefs)
+        val profileId = activeTraktProfileId()
+        val canSync = signedIn && TraktStore.isWatchedSyncEnabled(prefs, profileId)
         syncNowRow.visibility = if (canSync) View.VISIBLE else View.GONE
         scrobbleCheck.visibility = if (signedIn) View.VISIBLE else View.GONE
         watchedCheck.visibility = if (signedIn) View.VISIBLE else View.GONE
         status.text = when {
             !configured -> getString(R.string.trakt_not_configured)
             !signedIn -> getString(R.string.trakt_not_connected)
-            else -> TraktStore.username(prefs)
+            else -> TraktStore.username(prefs, profileId)
                 ?.let { getString(R.string.trakt_signed_in_as, it) }
                 ?: getString(R.string.trakt_signed_in)
         }
-        setCheckedSilently(scrobbleCheck, TraktStore.isScrobbleEnabled(prefs)) { checked ->
-            TraktStore.setScrobbleEnabled(prefs, checked)
+        setCheckedSilently(scrobbleCheck, TraktStore.isScrobbleEnabled(prefs, profileId)) { checked ->
+            if (isTraktProfileCurrent(profileId)) {
+                TraktStore.setScrobbleEnabled(prefs, profileId, checked)
+            }
         }
-        setCheckedSilently(watchedCheck, TraktStore.isWatchedSyncEnabled(prefs)) { checked ->
-            TraktStore.setWatchedSyncEnabled(prefs, checked)
+        setCheckedSilently(watchedCheck, TraktStore.isWatchedSyncEnabled(prefs, profileId)) { checked ->
+            if (!isTraktProfileCurrent(profileId)) return@setCheckedSilently
+            TraktStore.setWatchedSyncEnabled(prefs, profileId, checked)
             // The toggle decides whether the Sync now row exists at all, so the pane has to be
             // rebuilt around the new state before anything else happens.
             render()

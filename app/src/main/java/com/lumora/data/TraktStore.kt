@@ -8,9 +8,10 @@ import com.lumora.data.remote.trakt.TraktClient
  *
  * Deliberately not part of [IptvProviderStore] or [MediaServerStore]: Trakt is neither a source
  * of content nor a library to browse. Nothing here ever produces a [com.lumora.model.Channel] -
- * it is one account whose only job is to be told what was watched. So it lives as four flat
- * prefs keys in the same "iptv_prefs" file everything else uses, rather than as an entry in a
- * JSON array of configs that all describe catalogues.
+ * it is one account whose only job is to be told what was watched. Its values still live in the
+ * same "iptv_prefs" file everything else uses, but each is scoped to the active ParafusoTV
+ * profile. Legacy flat keys remain readable only for profile 1 until that profile writes its own
+ * value; they are never copied or removed automatically.
  *
  * The two toggles are kept apart on purpose, because they answer different questions and people
  * want them set differently: [isScrobbleEnabled] governs live reporting from the player (which
@@ -30,28 +31,28 @@ object TraktStore {
      *  reconciled today doesn't do it again on every launch. */
     private const val KEY_LAST_PULL = "trakt_last_watched_pull"
 
-    fun tokens(prefs: SharedPreferences): TraktClient.Tokens? {
-        val access = prefs.getString(KEY_ACCESS_TOKEN, null)?.takeIf { it.isNotBlank() } ?: return null
-        val refresh = prefs.getString(KEY_REFRESH_TOKEN, null)?.takeIf { it.isNotBlank() } ?: return null
-        return TraktClient.Tokens(access, refresh, prefs.getLong(KEY_EXPIRES_AT, 0L))
+    fun tokens(prefs: SharedPreferences, profileId: Int): TraktClient.Tokens? {
+        val access = getString(prefs, KEY_ACCESS_TOKEN, profileId)?.takeIf { it.isNotBlank() } ?: return null
+        val refresh = getString(prefs, KEY_REFRESH_TOKEN, profileId)?.takeIf { it.isNotBlank() } ?: return null
+        return TraktClient.Tokens(access, refresh, getLong(prefs, KEY_EXPIRES_AT, profileId, 0L))
     }
 
-    fun saveTokens(prefs: SharedPreferences, tokens: TraktClient.Tokens) {
+    fun saveTokens(prefs: SharedPreferences, profileId: Int, tokens: TraktClient.Tokens) {
         prefs.edit()
-            .putString(KEY_ACCESS_TOKEN, tokens.accessToken)
-            .putString(KEY_REFRESH_TOKEN, tokens.refreshToken)
-            .putLong(KEY_EXPIRES_AT, tokens.expiresAtMs)
+            .putString(scopedKey(KEY_ACCESS_TOKEN, profileId), tokens.accessToken)
+            .putString(scopedKey(KEY_REFRESH_TOKEN, profileId), tokens.refreshToken)
+            .putLong(scopedKey(KEY_EXPIRES_AT, profileId), tokens.expiresAtMs)
             .apply()
     }
 
-    fun username(prefs: SharedPreferences): String? =
-        prefs.getString(KEY_USERNAME, null)?.takeIf { it.isNotBlank() }
+    fun username(prefs: SharedPreferences, profileId: Int): String? =
+        getString(prefs, KEY_USERNAME, profileId)?.takeIf { it.isNotBlank() }
 
-    fun saveUsername(prefs: SharedPreferences, username: String?) {
-        prefs.edit().putString(KEY_USERNAME, username.orEmpty()).apply()
+    fun saveUsername(prefs: SharedPreferences, profileId: Int, username: String?) {
+        prefs.edit().putString(scopedKey(KEY_USERNAME, profileId), username.orEmpty()).apply()
     }
 
-    fun isSignedIn(prefs: SharedPreferences): Boolean = tokens(prefs) != null
+    fun isSignedIn(prefs: SharedPreferences, profileId: Int): Boolean = tokens(prefs, profileId) != null
 
     /**
      * Drops the whole session.
@@ -61,31 +62,34 @@ object TraktStore {
      * shouldn't have to set them again. They are inert while signed out anyway - every caller
      * checks for a token first.
      */
-    fun clear(prefs: SharedPreferences) {
+    fun clear(prefs: SharedPreferences, profileId: Int) {
         prefs.edit()
-            .remove(KEY_ACCESS_TOKEN)
-            .remove(KEY_REFRESH_TOKEN)
-            .remove(KEY_EXPIRES_AT)
-            .remove(KEY_USERNAME)
-            .remove(KEY_LAST_PULL)
+            // Empty scoped values deliberately shadow a profile-1 legacy session after logout.
+            .putString(scopedKey(KEY_ACCESS_TOKEN, profileId), "")
+            .putString(scopedKey(KEY_REFRESH_TOKEN, profileId), "")
+            .putLong(scopedKey(KEY_EXPIRES_AT, profileId), 0L)
+            .putString(scopedKey(KEY_USERNAME, profileId), "")
+            .putLong(scopedKey(KEY_LAST_PULL, profileId), 0L)
             .apply()
     }
 
     /** Real-time /scrobble reporting from the player. Default on: it is the thing people
      *  connect Trakt for, and it does nothing at all until they sign in. */
-    fun isScrobbleEnabled(prefs: SharedPreferences): Boolean = prefs.getBoolean(KEY_SCROBBLE, true)
+    fun isScrobbleEnabled(prefs: SharedPreferences, profileId: Int): Boolean =
+        getBoolean(prefs, KEY_SCROBBLE, profileId, true)
 
-    fun setScrobbleEnabled(prefs: SharedPreferences, enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_SCROBBLE, enabled).apply()
+    fun setScrobbleEnabled(prefs: SharedPreferences, profileId: Int, enabled: Boolean) {
+        prefs.edit().putBoolean(scopedKey(KEY_SCROBBLE, profileId), enabled).apply()
     }
 
     /** History writes plus the startup pull into WatchedStore. Default off: it writes to the
      *  cross-provider watched state, which is a bigger thing to turn on behind someone's back
      *  than a scrobble that only ever adds to a Trakt profile. */
-    fun isWatchedSyncEnabled(prefs: SharedPreferences): Boolean = prefs.getBoolean(KEY_WATCHED_SYNC, false)
+    fun isWatchedSyncEnabled(prefs: SharedPreferences, profileId: Int): Boolean =
+        getBoolean(prefs, KEY_WATCHED_SYNC, profileId, false)
 
-    fun setWatchedSyncEnabled(prefs: SharedPreferences, enabled: Boolean) {
-        prefs.edit().putBoolean(KEY_WATCHED_SYNC, enabled).apply()
+    fun setWatchedSyncEnabled(prefs: SharedPreferences, profileId: Int, enabled: Boolean) {
+        prefs.edit().putBoolean(scopedKey(KEY_WATCHED_SYNC, profileId), enabled).apply()
     }
 
     // ── TMDB id memo (backfill) ─────────────────
@@ -104,8 +108,8 @@ object TraktStore {
      * "TMDB has never heard of this" - kept deliberately, because without it every run would
      * spend its whole budget re-searching the same handful of titles that will never match.
      */
-    fun idMemo(prefs: SharedPreferences): Map<String, Int> {
-        val raw = prefs.getStringSet(KEY_ID_MEMO, emptySet()) ?: return emptyMap()
+    fun idMemo(prefs: SharedPreferences, profileId: Int): Map<String, Int> {
+        val raw = getStringSet(prefs, KEY_ID_MEMO, profileId) ?: return emptyMap()
         val out = HashMap<String, Int>(raw.size)
         for (line in raw) {
             val cut = line.lastIndexOf('|')
@@ -116,16 +120,65 @@ object TraktStore {
         return out
     }
 
-    fun saveIdMemo(prefs: SharedPreferences, memo: Map<String, Int>) {
+    fun saveIdMemo(prefs: SharedPreferences, profileId: Int, memo: Map<String, Int>) {
         val trimmed = if (memo.size <= ID_MEMO_MAX) memo else memo.entries.take(ID_MEMO_MAX).associate { it.toPair() }
         prefs.edit()
-            .putStringSet(KEY_ID_MEMO, trimmed.map { (key, id) -> "$key|$id" }.toSet())
+            .putStringSet(scopedKey(KEY_ID_MEMO, profileId), trimmed.map { (key, id) -> "$key|$id" }.toSet())
             .apply()
     }
 
-    fun lastWatchedPullMs(prefs: SharedPreferences): Long = prefs.getLong(KEY_LAST_PULL, 0L)
+    fun lastWatchedPullMs(prefs: SharedPreferences, profileId: Int): Long =
+        getLong(prefs, KEY_LAST_PULL, profileId, 0L)
 
-    fun markWatchedPulled(prefs: SharedPreferences) {
-        prefs.edit().putLong(KEY_LAST_PULL, System.currentTimeMillis()).apply()
+    fun markWatchedPulled(prefs: SharedPreferences, profileId: Int) {
+        prefs.edit().putLong(scopedKey(KEY_LAST_PULL, profileId), System.currentTimeMillis()).apply()
     }
+
+    /** Pure ownership check shared by asynchronous callers before applying a local effect. */
+    fun isCurrentProfile(ownerProfileId: Int, activeProfileId: Int): Boolean =
+        normalizedProfileId(ownerProfileId) == normalizedProfileId(activeProfileId)
+
+    private fun getString(prefs: SharedPreferences, key: String, profileId: Int): String? {
+        val scopedKey = scopedKey(key, profileId)
+        return when {
+            prefs.contains(scopedKey) -> prefs.getString(scopedKey, null)
+            normalizedProfileId(profileId) == LEGACY_PROFILE_ID -> prefs.getString(key, null)
+            else -> null
+        }
+    }
+
+    private fun getBoolean(prefs: SharedPreferences, key: String, profileId: Int, defaultValue: Boolean): Boolean {
+        val scopedKey = scopedKey(key, profileId)
+        return when {
+            prefs.contains(scopedKey) -> prefs.getBoolean(scopedKey, defaultValue)
+            normalizedProfileId(profileId) == LEGACY_PROFILE_ID -> prefs.getBoolean(key, defaultValue)
+            else -> defaultValue
+        }
+    }
+
+    private fun getLong(prefs: SharedPreferences, key: String, profileId: Int, defaultValue: Long): Long {
+        val scopedKey = scopedKey(key, profileId)
+        return when {
+            prefs.contains(scopedKey) -> prefs.getLong(scopedKey, defaultValue)
+            normalizedProfileId(profileId) == LEGACY_PROFILE_ID -> prefs.getLong(key, defaultValue)
+            else -> defaultValue
+        }
+    }
+
+    private fun getStringSet(prefs: SharedPreferences, key: String, profileId: Int): Set<String>? {
+        val scopedKey = scopedKey(key, profileId)
+        return when {
+            prefs.contains(scopedKey) -> prefs.getStringSet(scopedKey, null)?.toSet()
+            normalizedProfileId(profileId) == LEGACY_PROFILE_ID -> prefs.getStringSet(key, null)?.toSet()
+            else -> null
+        }
+    }
+
+    private fun scopedKey(key: String, profileId: Int): String =
+        "${key}_profile_${normalizedProfileId(profileId)}"
+
+    private fun normalizedProfileId(profileId: Int): Int =
+        profileId.takeIf { it > 0 } ?: LEGACY_PROFILE_ID
+
+    private const val LEGACY_PROFILE_ID = 1
 }

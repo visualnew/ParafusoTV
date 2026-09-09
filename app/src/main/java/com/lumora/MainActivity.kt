@@ -876,6 +876,8 @@ class MainActivity : AppCompatActivity() {
      *  hear about transitions, so a report goes out when this stops matching reality. */
     internal var traktLastReportedPaused: Boolean? = null
     internal var traktResolveJob: Job? = null
+    /** Best-effort outbound scrobbles, retained so a profile switch can cancel pending sends. */
+    internal val traktScrobbleJobs = java.util.concurrent.ConcurrentHashMap.newKeySet<Job>()
     /** The running device-code sign-in, cancelled when its dialog closes. */
     internal var traktSignInJob: Job? = null
     /** The negotiated stream for whatever Jellyfin item is playing (see
@@ -1373,6 +1375,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun activateProfileAfterAuthorization(destination: ParafusoProfile, chooser: Dialog) {
+        resetTraktForProfileChange()
         profileSession.activate(destination.id)
         chooser.dismiss()
         // Catalog derivation and row caches depend on personal filtering/grouping preferences.
