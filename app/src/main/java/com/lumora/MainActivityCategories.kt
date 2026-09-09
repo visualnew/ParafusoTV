@@ -18,7 +18,6 @@ import com.lumora.adapter.LiveGuideAdapter
 import com.lumora.adapter.PosterGridAdapter
 import com.lumora.adapter.SideMenuCategoryAdapter
 import com.lumora.cache.DerivedCache
-import com.lumora.data.local.entity.RecordingEntity
 import com.lumora.cache.ProgramReminder
 import com.lumora.reminder.ReminderScheduler
 import com.lumora.cache.FavoritesStore
@@ -1835,72 +1834,11 @@ internal fun MainActivity.renderLegacyTvDashboardRailSelection() {
     }
 }
 internal fun MainActivity.showRecordingsPanel() {
-    scope.launch {
-        val recordings = withContext(Dispatchers.IO) { database.recordingDao().getAll() }
-        val storage = withContext(Dispatchers.IO) { database.recordingDao().getStorageConfig() }
-        val ordered = recordings.sortedWith(compareBy<RecordingEntity> {
-            when (it.status) {
-                "RECORDING" -> 0
-                "SCHEDULED" -> 1
-                "COMPLETED" -> 2
-                else -> 3
-            }
-        }.thenBy { it.startTimeUtc })
-
-        if (ordered.isEmpty()) {
-            AlertDialog.Builder(this@showRecordingsPanel)
-                .setTitle("Gravações")
-                .setMessage("Nenhuma gravação agendada ou concluída.\n\nVocê pode agendar uma gravação pelo botão REC do player ou pelo Guia de TV.")
-                .setPositiveButton("Fechar", null)
-                .show()
-            return@launch
-        }
-
-        val labels = ordered.map { rec ->
-            val status = when (rec.status) {
-                "SCHEDULED" -> "AGENDADA"
-                "RECORDING" -> "EM ANDAMENTO"
-                "COMPLETED" -> "CONCLUÍDA"
-                "FAILED" -> "FALHOU"
-                "CANCELLED" -> "CANCELADA"
-                else -> rec.status
-            }
-            val whenText = java.text.SimpleDateFormat("dd/MM HH:mm", java.util.Locale.getDefault())
-                .format(java.util.Date(rec.startTimeUtc * 1000))
-            "${rec.programTitle}\n${rec.channelName}  •  $whenText  •  $status"
-        }.toTypedArray()
-
-        val storagePath = storage?.localPath ?: "${filesDir}/recordings"
-        AlertDialog.Builder(this@showRecordingsPanel)
-            .setTitle("Gravações  •  ${ordered.size}")
-            .setItems(labels) { _, which ->
-                val selected = ordered[which]
-                if (selected.status == "SCHEDULED") {
-                    AlertDialog.Builder(this@showRecordingsPanel)
-                        .setTitle(selected.programTitle)
-                        .setMessage("${selected.channelName}\n\nInício: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(selected.startTimeUtc * 1000))}\nFim: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.getDefault()).format(java.util.Date(selected.stopTimeUtc * 1000))}\n\nArmazenamento: $storagePath")
-                        .setPositiveButton("Cancelar gravação") { _, _ ->
-                            scope.launch(Dispatchers.IO) {
-                                com.lumora.recording.RecordingScheduler.cancel(this@showRecordingsPanel, selected)
-                                database.recordingDao().update(selected.copy(status = "CANCELLED"))
-                                withContext(Dispatchers.Main) {
-                                    Toast.makeText(this@showRecordingsPanel, "Gravação cancelada", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                        }
-                        .setNegativeButton("Fechar", null)
-                        .show()
-                } else {
-                    AlertDialog.Builder(this@showRecordingsPanel)
-                        .setTitle(selected.programTitle)
-                        .setMessage("${selected.channelName}\nStatus: ${selected.status}\nArquivo: ${selected.filePath ?: "ainda não disponível"}\nTamanho: ${if (selected.fileSize > 0) android.text.format.Formatter.formatFileSize(this@showRecordingsPanel, selected.fileSize) else "—"}")
-                        .setPositiveButton("Fechar", null)
-                        .show()
-                }
-            }
-            .setNegativeButton("Fechar", null)
-            .show()
-    }
+    AlertDialog.Builder(this)
+        .setTitle("Gravações")
+        .setMessage("Em desenvolvimento\n\nA gravação de conteúdos estará disponível futuramente.")
+        .setPositiveButton("Fechar", null)
+        .show()
 }
 
 

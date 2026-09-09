@@ -328,30 +328,7 @@ internal fun MainActivity.setupPlayerControls() {
 
     // Record button
     binding.btnRecord.setOnClickListener {
-        if (nowPlayingChannel?.mediaType != MediaType.LIVE) {
-            Toast.makeText(this, getString(R.string.play_recording_live_only), Toast.LENGTH_SHORT).show()
-            return@setOnClickListener
-        }
-        val channel = nowPlayingChannel ?: return@setOnClickListener
-        AlertDialog.Builder(this)
-            .setTitle(getString(R.string.play_schedule_recording))
-            .setMessage(getString(R.string.play_record_confirm, channel.name))
-            .setPositiveButton(getString(R.string.play_record_for_2_hours)) { _, _ ->
-                val recEntry = com.lumora.recording.RecordingScheduler.createRecording(
-                    channelId = channel.id,
-                    channelName = channel.name,
-                    programTitle = channel.name,
-                    startTimeUtc = System.currentTimeMillis() / 1000,
-                    stopTimeUtc = (System.currentTimeMillis() / 1000) + 7200
-                )
-                com.lumora.recording.RecordingScheduler.schedule(this, recEntry)
-                scope.launch {
-                    database.recordingDao().insert(recEntry)
-                }
-                Toast.makeText(this, getString(R.string.play_recording_scheduled), Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton(getString(R.string.cancel), null)
-            .show()
+        Toast.makeText(this, "Gravações: em desenvolvimento", Toast.LENGTH_SHORT).show()
     }
 
     binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
