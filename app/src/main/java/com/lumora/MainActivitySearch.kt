@@ -1,6 +1,5 @@
 package com.lumora
 
-import android.content.Context
 import android.animation.AnimatorInflater
 import androidx.core.content.res.ResourcesCompat
 import android.view.View
@@ -437,15 +436,13 @@ internal fun MainActivity.loadMoreSearchResults(adapter: SearchResultsAdapter, s
 // ── Search recents ──────────────────────────────
 
 internal fun MainActivity.searchRecents(): List<String> =
-    getSharedPreferences("search_recents", Context.MODE_PRIVATE)
-        .getString("list", "")?.split("\n").orEmpty().filter { it.isNotBlank() }
+    searchRecentsPreferences.getString("list").split("\n").filter { it.isNotBlank() }
 
 internal fun MainActivity.addSearchRecent(q: String) {
     if (q.isBlank()) return
-    val prefs = getSharedPreferences("search_recents", Context.MODE_PRIVATE)
-    prefs.edit().putString("list", (listOf(q) + searchRecents()).distinct().take(10).joinToString("\n")).apply()
+    searchRecentsPreferences.putString("list", (listOf(q) + searchRecents()).distinct().take(10).joinToString("\n"))
 }
 
 internal fun MainActivity.clearSearchRecents() {
-    getSharedPreferences("search_recents", Context.MODE_PRIVATE).edit().remove("list").apply()
+    searchRecentsPreferences.putString("list", "")
 }

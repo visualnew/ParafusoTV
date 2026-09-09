@@ -748,12 +748,12 @@ internal fun MainActivity.populateHomeTileEpisodeQueue(channel: Channel) {
 }
 
 internal fun MainActivity.getHiddenHomeShelves(): MutableSet<String> =
-    prefs.getStringSet("hidden_home_shelves", emptySet())?.toMutableSet() ?: mutableSetOf()
+    profilePreferences.getStringSet("hidden_home_shelves").toMutableSet()
 
 internal fun MainActivity.toggleHiddenHomeShelf(title: String) {
     val hidden = getHiddenHomeShelves()
     if (!hidden.remove(title)) hidden.add(title)
-    prefs.edit().putStringSet("hidden_home_shelves", hidden).apply()
+    profilePreferences.putStringSet("hidden_home_shelves", hidden)
     homeShelfAdapter.submitList(buildHomeShelves())
 }
 
@@ -790,9 +790,9 @@ internal fun MainActivity.clearContinueWatching(onRebuilt: (() -> Unit)? = null)
         val client = plexClients[serverId] ?: continue
         scope.launch(Dispatchers.IO) { ids.forEach { id -> runCatching { client.clearUserData(id) } } }
     }
-    getHiddenHomeShelves().let { if (it.remove(getString(R.string.category_continue_watching))) prefs.edit().putStringSet("hidden_home_shelves", it).apply() }
-    getHiddenCategories(1).let { if (it.remove("Continue Watching")) prefs.edit().putStringSet(hiddenCategoriesPrefsKey(1), it).apply() }
-    getHiddenCategories(2).let { if (it.remove("Continue Watching")) prefs.edit().putStringSet(hiddenCategoriesPrefsKey(2), it).apply() }
+    getHiddenHomeShelves().let { if (it.remove(getString(R.string.category_continue_watching))) profilePreferences.putStringSet("hidden_home_shelves", it) }
+    getHiddenCategories(1).let { if (it.remove("Continue Watching")) profilePreferences.putStringSet(hiddenCategoriesPrefsKey(1), it) }
+    getHiddenCategories(2).let { if (it.remove("Continue Watching")) profilePreferences.putStringSet(hiddenCategoriesPrefsKey(2), it) }
     homeShelfAdapter.submitList(buildHomeShelves())
     if (!showingHome && activeTab != 0) {
         scope.launch {
@@ -1085,7 +1085,7 @@ internal fun upNextSeriesId(item: Channel): String =
     item.categoryId?.takeIf { it.isNotBlank() && item.episodeNum != null } ?: item.id.ifBlank { item.url }
 
 internal fun MainActivity.getHiddenUpNextSeries(): MutableSet<String> =
-    prefs.getStringSet(PREF_UP_NEXT_HIDDEN, emptySet())?.toMutableSet() ?: mutableSetOf()
+    profilePreferences.getStringSet(PREF_UP_NEXT_HIDDEN).toMutableSet()
 
 /**
  * Takes one show off Up Next for good.
@@ -1104,7 +1104,7 @@ internal fun MainActivity.removeFromUpNext(item: Channel) {
     if (seriesId.isBlank()) return
     val hidden = getHiddenUpNextSeries()
     if (!hidden.add(seriesId)) return
-    prefs.edit().putStringSet(PREF_UP_NEXT_HIDDEN, hidden).apply()
+    profilePreferences.putStringSet(PREF_UP_NEXT_HIDDEN, hidden)
     // The memo is what buildUpNextSeriesTiles serves from; leaving the tile in it costs a
     // pointless resolve on every rebuild even though the filter now drops it.
     upNextTiles.remove(seriesId)
@@ -1135,7 +1135,7 @@ internal fun MainActivity.removeFromUpNext(item: Channel) {
  *  permanent - offered on the sidebar row's own menu, where the row is. */
 internal fun MainActivity.restoreRemovedUpNext() {
     if (getHiddenUpNextSeries().isEmpty()) return
-    prefs.edit().remove(PREF_UP_NEXT_HIDDEN).apply()
+    profilePreferences.clearStringSet(PREF_UP_NEXT_HIDDEN)
     // Trails for the restored shows were never resolved while they were hidden.
     clearUpNextMemo()
     refreshHomeShelvesIfShowing()

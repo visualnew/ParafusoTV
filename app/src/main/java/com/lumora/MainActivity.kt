@@ -83,6 +83,7 @@ import com.lumora.security.AuthorizationPolicy
 import com.lumora.security.AuthorizationRequest
 import com.lumora.security.CredentialRequirement
 import com.lumora.state.AppState
+import com.lumora.state.ProfilePreferences
 import com.lumora.state.ProfileSession
 import kotlinx.coroutines.*
 
@@ -349,6 +350,12 @@ class MainActivity : AppCompatActivity() {
      *  can do - sibling files (MainActivityPlayer) go through this instead. */
     internal val isCastManagerReady: Boolean get() = ::castManager.isInitialized
     internal lateinit var prefs: SharedPreferences
+    /** Personal organization/history values; profile lookup stays live across profile switches. */
+    internal val profilePreferences by lazy { ProfilePreferences(prefs, this) }
+    /** Search recents intentionally keep their existing SharedPreferences file. */
+    internal val searchRecentsPreferences by lazy {
+        ProfilePreferences(getSharedPreferences("search_recents", Context.MODE_PRIVATE), this)
+    }
     /** Device-wide administrative credential; per-profile PINs remain in ParafusoParentalStore. */
     internal val administrativePinStore by lazy { AdministrativePinStore(this) }
     /** Accesses the active profile without changing the existing stores or their persistence. */

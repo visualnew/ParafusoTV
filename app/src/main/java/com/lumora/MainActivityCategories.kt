@@ -56,7 +56,7 @@ internal fun MainActivity.pinnedCategoriesPrefsKey(tab: Int = activeTab): String
 }
 
 internal fun MainActivity.getPinnedCategories(tab: Int = activeTab): MutableSet<String> =
-    prefs.getStringSet(pinnedCategoriesPrefsKey(tab), emptySet())?.toMutableSet() ?: mutableSetOf()
+    profilePreferences.getStringSet(pinnedCategoriesPrefsKey(tab)).toMutableSet()
 
 internal fun MainActivity.hiddenCategoriesPrefsKey(tab: Int = activeTab): String = when (tab) {
     0 -> "hidden_categories_live"
@@ -65,7 +65,7 @@ internal fun MainActivity.hiddenCategoriesPrefsKey(tab: Int = activeTab): String
 }
 
 internal fun MainActivity.getHiddenCategories(tab: Int = activeTab): MutableSet<String> =
-    prefs.getStringSet(hiddenCategoriesPrefsKey(tab), emptySet())?.toMutableSet() ?: mutableSetOf()
+    profilePreferences.getStringSet(hiddenCategoriesPrefsKey(tab)).toMutableSet()
 
 // Newest/Favourites are synthetic shelves with no sidebar row id - pinning/hiding them
 // falls back to the legacy title-based prefs (inert, as it always was: nothing matches
@@ -73,14 +73,14 @@ internal fun MainActivity.getHiddenCategories(tab: Int = activeTab): MutableSet<
 internal fun MainActivity.togglePinnedShelf(tab: Int, title: String) {
     val pinned = getPinnedCategories(tab)
     if (!pinned.remove(title)) pinned.add(title)
-    prefs.edit().putStringSet(pinnedCategoriesPrefsKey(tab), pinned).apply()
+    profilePreferences.putStringSet(pinnedCategoriesPrefsKey(tab), pinned)
     scope.launch { classifyAndShow() }
 }
 
 internal fun MainActivity.toggleHiddenShelf(tab: Int, title: String) {
     val hidden = getHiddenCategories(tab)
     if (!hidden.remove(title)) hidden.add(title)
-    prefs.edit().putStringSet(hiddenCategoriesPrefsKey(tab), hidden).apply()
+    profilePreferences.putStringSet(hiddenCategoriesPrefsKey(tab), hidden)
     val label = if (title in getHiddenCategories(tab)) getString(R.string.plug_hidden, title)
     else getString(R.string.plug_unhidden, title)
     Toast.makeText(this, label, Toast.LENGTH_SHORT).show()
@@ -113,7 +113,7 @@ internal fun MainActivity.togglePinCategory(category: CategoryFilter, tab: Int =
     val pinned = getPinnedCategories(tab)
     val pinningNow = !pinned.remove(id)
     if (pinningNow) pinned.add(id)
-    prefs.edit().putStringSet(pinnedCategoriesPrefsKey(tab), pinned).apply()
+    profilePreferences.putStringSet(pinnedCategoriesPrefsKey(tab), pinned)
     // The rebuild that follows can take a moment on a big catalog, and the row only
     // moves once it lands - without a word on screen a hold looked like it did nothing.
     Toast.makeText(
@@ -132,7 +132,7 @@ internal fun MainActivity.toggleHiddenSidebarCategory(category: CategoryFilter, 
     val hidden = getHiddenCategories(tab)
     val hidingNow = ids.none { it in hidden }
     if (hidingNow) hidden.addAll(ids) else hidden.removeAll(ids)
-    prefs.edit().putStringSet(hiddenCategoriesPrefsKey(tab), hidden).apply()
+    profilePreferences.putStringSet(hiddenCategoriesPrefsKey(tab), hidden)
     Toast.makeText(this, if (hidingNow) getString(R.string.plug_hidden, category.name) else getString(R.string.plug_unhidden, category.name), Toast.LENGTH_SHORT).show()
     scope.launch { rebuildCategoriesForActiveTab() }
 }
