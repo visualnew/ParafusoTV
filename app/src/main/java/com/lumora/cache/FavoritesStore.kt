@@ -33,37 +33,58 @@ object FavoritesStore {
 
     fun toggleFavoriteSeries(context: Context, id: String): Boolean = toggle(context, ParafusoProfileScope.key(KEY_FAVORITE_SERIES, context), id)
 
-    fun getFavoriteSeriesIds(context: Context): Set<String> = readSet(context, ParafusoProfileScope.key(KEY_FAVORITE_SERIES, context))
+    fun getFavoriteSeriesIds(context: Context): Set<String> =
+        getFavoriteSeriesIdsForProfile(context, ParafusoProfileScope.activeId(context))
+
+    /** Explicit profile access for backup/restore; does not change the active profile. */
+    internal fun getFavoriteSeriesIdsForProfile(context: Context, profileId: Int): Set<String> =
+        readSet(context, profileKey(KEY_FAVORITE_SERIES, profileId), profileId)
 
     /** Sets membership outright rather than flipping it - for reconciling against a server
      *  that owns the truth (Jellyfin's UserData.IsFavorite), where a toggle can't express
      *  "the server says this is no longer a favourite". Returns true if anything changed. */
     fun setFavoriteSeries(context: Context, id: String, favorite: Boolean): Boolean = synchronized(lock) {
         if (id.isBlank()) return false
-        val current = readSet(context, ParafusoProfileScope.key(KEY_FAVORITE_SERIES, context))
+        val profileId = ParafusoProfileScope.activeId(context)
+        val current = readSet(context, profileKey(KEY_FAVORITE_SERIES, profileId), profileId)
         if (favorite == (id in current)) return false
         val updated = if (favorite) current + id else current - id
-        write(context, ParafusoProfileScope.key(KEY_FAVORITE_SERIES, context), updated)
+        write(context, profileKey(KEY_FAVORITE_SERIES, profileId), updated)
         true
     }
 
     fun toggleFavoriteChannel(context: Context, id: String): Boolean = toggle(context, ParafusoProfileScope.key(KEY_FAVORITE_CHANNELS, context), id)
 
-    fun getFavoriteChannelIds(context: Context): Set<String> = readSet(context, ParafusoProfileScope.key(KEY_FAVORITE_CHANNELS, context))
+    fun getFavoriteChannelIds(context: Context): Set<String> =
+        getFavoriteChannelIdsForProfile(context, ParafusoProfileScope.activeId(context))
+
+    /** Explicit profile access for backup/restore; does not change the active profile. */
+    internal fun getFavoriteChannelIdsForProfile(context: Context, profileId: Int): Set<String> =
+        readSet(context, profileKey(KEY_FAVORITE_CHANNELS, profileId), profileId)
 
     /** Replaces both favourites sets outright - for backup restore, where the backup is the
      *  truth and anything currently stored must go. Updates the in-memory mirror like every
      *  other writer, so the cache cannot go stale. */
     fun replaceAll(context: Context, seriesIds: Set<String>, channelIds: Set<String>) {
+        replaceAllForProfile(context, ParafusoProfileScope.activeId(context), seriesIds, channelIds)
+    }
+
+    /** Explicit profile restore path; writes only that profile's namespace. */
+    internal fun replaceAllForProfile(
+        context: Context,
+        profileId: Int,
+        seriesIds: Set<String>,
+        channelIds: Set<String>
+    ) {
         synchronized(lock) {
-            write(context, ParafusoProfileScope.key(KEY_FAVORITE_SERIES, context), seriesIds)
-            write(context, ParafusoProfileScope.key(KEY_FAVORITE_CHANNELS, context), channelIds)
+            write(context, profileKey(KEY_FAVORITE_SERIES, profileId), seriesIds)
+            write(context, profileKey(KEY_FAVORITE_CHANNELS, profileId), channelIds)
         }
     }
 
     /** Returns the new membership state (true = now favorited). */
     private fun toggle(context: Context, key: String, id: String): Boolean = synchronized(lock) {
-        val current = readSet(context, key)
+        val current = readSet(context, key, ParafusoProfileScope.activeId(context))
         val nowFavorite = id !in current
         write(context, key, if (nowFavorite) current + id else current - id)
         nowFavorite
@@ -75,7 +96,7 @@ object FavoritesStore {
             .edit().putStringSet(key, value).apply()
     }
 
-    private fun readSet(context: Context, key: String): Set<String> = synchronized(lock) {
+    private fun readSet(context: Context, key: String, profileId: Int): Set<String> = synchronized(lock) {
         cache.getOrPut(key) {
             // Copied out of the pref rather than handed over: SharedPreferences returns its own
             // live instance from getStringSet, and the docs are explicit that mutating it (or
@@ -83,10 +104,15 @@ object FavoritesStore {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val scoped = prefs.getStringSet(key, null)
             if (scoped != null) scoped.toSet()
-            else if (com.lumora.ParafusoProfileScope.activeId(context) == 1) {
+            else if (normalizedProfileId(profileId) == 1) {
                 // Preserve an existing pre-profile installation when the first profile is used.
                 prefs.getStringSet(key.substringBefore("_profile_"), emptySet())?.toSet() ?: emptySet()
             } else emptySet()
         }
     }
+
+    private fun profileKey(base: String, profileId: Int): String =
+        "${base}_profile_${normalizedProfileId(profileId)}"
+
+    private fun normalizedProfileId(profileId: Int): Int = profileId.takeIf { it > 0 } ?: 1
 }

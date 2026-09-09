@@ -4,6 +4,10 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.lumora.cache.FavoritesStore
+import com.lumora.cache.PlaybackPositionStore
+import com.lumora.cache.WatchedStore
+import com.lumora.ParafusoProfile
+import com.lumora.ParafusoProfileStore
 import com.lumora.data.IptvProviderStore
 import com.lumora.data.MediaServerStore
 import com.lumora.data.local.LumoraDatabase
@@ -36,7 +40,7 @@ class BackupManager(private val context: Context) {
 
     private val TAG = "BackupManager"
     private val gson: Gson = GsonBuilder().setPrettyPrinting().create()
-    private companion object {
+    companion object {
         // Deliberately not bumped for the fields this change adds: they are additive and
         // Gson-tolerant in both directions. An old build reading a new backup drops the
         // unknown fields; a new build reading an old backup sees them absent, which Gson
@@ -49,6 +53,11 @@ class BackupManager(private val context: Context) {
         private const val GCM_TAG_BITS = 128
         private const val PBKDF2_ITERATIONS = 120_000
         private const val KEY_BITS = 256
+
+        /** Pure fallback used when a backup's selected profile is absent or no longer valid. */
+        internal fun resolveActiveProfileId(profiles: List<ParafusoProfile>, savedActiveId: Int?): Int? =
+            savedActiveId?.takeIf { candidate -> profiles.any { it.id == candidate } }
+                ?: profiles.firstOrNull()?.id
     }
 
     // The list fields are nullable on purpose: gson.fromJson leaves them null when the JSON
@@ -66,12 +75,18 @@ class BackupManager(private val context: Context) {
         val mediaServers: List<MediaServerBackup>? = emptyList(),
         val epgSources: List<EpgSourceBackup>? = emptyList(),
         val customGroups: List<CustomGroupBackup>? = emptyList(),
-        // Legacy field, always empty in practice (the old export hardcoded it). Favorites are
-        // carried in favoriteSeries/favoriteChannels so restore knows which set each id
-        // belongs to.
+        // Legacy field, always empty in practice (the old export hardcoded it).
+        // favoriteSeries/favoriteChannels retain the active profile for old builds; new builds
+        // use profileFavorites for every profile.
         val favorites: List<String>? = emptyList(),
         val favoriteSeries: List<String>? = emptyList(),
         val favoriteChannels: List<String>? = emptyList(),
+        // Added fields stay nullable so v1 backups written before profiles remain importable.
+        val profiles: List<ProfileBackup>? = null,
+        val activeProfileId: Int? = null,
+        val profileFavorites: List<ProfileFavoritesBackup>? = null,
+        val profilePlaybackPositions: List<ProfilePlaybackPositionsBackup>? = null,
+        val profileWatchedMarks: List<ProfileWatchedMarksBackup>? = null,
         val watchHistory: List<WatchHistoryBackup>? = emptyList(),
         val recordingStorage: RecordingStorageBackup? = null,
         val recordingSchedules: List<RecordingScheduleBackup>? = emptyList(),
@@ -118,6 +133,19 @@ class BackupManager(private val context: Context) {
         val id: String, val name: String, val mediaType: String,
         val isHidden: Boolean, val members: List<String> = emptyList()
     )
+
+    data class ProfileBackup(
+        val id: Int, val name: String, val child: Boolean = false, val accent: String = "silver"
+    )
+
+    data class ProfileFavoritesBackup(
+        val profileId: Int, val favoriteSeries: List<String> = emptyList(), val favoriteChannels: List<String> = emptyList()
+    )
+
+    /** Existing profile-scoped playback JSON; its owning store remains the format authority. */
+    data class ProfilePlaybackPositionsBackup(val profileId: Int, val payload: String)
+
+    data class ProfileWatchedMarksBackup(val profileId: Int, val marks: List<String> = emptyList())
 
     data class WatchHistoryBackup(
         // Original row id, carried so restore keeps entries distinct per channel instead of
@@ -275,6 +303,10 @@ class BackupManager(private val context: Context) {
 
     private suspend fun collectBackupData(db: LumoraDatabase): BackupData {
         val prefs = context.getSharedPreferences("iptv_prefs", Context.MODE_PRIVATE)
+        val profileStore = ParafusoProfileStore(context)
+        val profiles = profileStore.ensureDefault()
+        val activeProfileId = profileStore.activeId().takeIf { activeId -> profiles.any { it.id == activeId } }
+            ?: profiles.firstOrNull()?.id ?: 1
         val epgSources = db.epgSourceDao().getAll()
         val customGroups = db.customGroupDao().getAll()
         // getAll, not getRecent: the LIMIT 50 read truncated every backup to the 50 most
@@ -311,8 +343,28 @@ class BackupManager(private val context: Context) {
                 )
             },
             favorites = emptyList(),
-            favoriteSeries = FavoritesStore.getFavoriteSeriesIds(context).toList(),
-            favoriteChannels = FavoritesStore.getFavoriteChannelIds(context).toList(),
+            // Retained for old builds that do not understand profileFavorites yet.
+            favoriteSeries = FavoritesStore.getFavoriteSeriesIdsForProfile(context, activeProfileId).toList(),
+            favoriteChannels = FavoritesStore.getFavoriteChannelIdsForProfile(context, activeProfileId).toList(),
+            profiles = profiles.map { it.toBackup() },
+            activeProfileId = activeProfileId,
+            profileFavorites = profiles.map { profile ->
+                ProfileFavoritesBackup(
+                    profileId = profile.id,
+                    favoriteSeries = FavoritesStore.getFavoriteSeriesIdsForProfile(context, profile.id).toList(),
+                    favoriteChannels = FavoritesStore.getFavoriteChannelIdsForProfile(context, profile.id).toList()
+                )
+            },
+            profilePlaybackPositions = profiles.map { profile ->
+                ProfilePlaybackPositionsBackup(
+                    profile.id, PlaybackPositionStore.exportForProfileBackup(context, profile.id)
+                )
+            },
+            profileWatchedMarks = profiles.map { profile ->
+                ProfileWatchedMarksBackup(
+                    profile.id, WatchedStore.exportForProfileBackup(context, profile.id).toList()
+                )
+            },
             watchHistory = watchHistory.map { WatchHistoryBackup(
                 id = it.id, profileId = it.profileId,
                 channelId = it.channelId, channelName = it.channelName,
@@ -340,6 +392,7 @@ class BackupManager(private val context: Context) {
     private suspend fun restoreBackupData(data: BackupData): ImportResult {
         val db = LumoraDatabase.getInstance(context)
         val prefs = context.getSharedPreferences("iptv_prefs", Context.MODE_PRIVATE)
+        val profileStore = ParafusoProfileStore(context)
         // gson.fromJson answers null for every array that is absent from the file - backups
         // written before a field existed, so Kotlin's emptyList defaults never apply. Null
         // means "absent": per the contract below, an absent list leaves what the device
@@ -355,6 +408,45 @@ class BackupManager(private val context: Context) {
         val watchHistory = data.watchHistory.orEmpty()
         val recordingSchedules = data.recordingSchedules.orEmpty()
         var result = ImportResult()
+
+        // A missing field means an old/partial backup and must leave local profiles alone.
+        // New backups restore profile identities before any profile-keyed data reaches disk.
+        val restoredProfiles = data.profiles
+            ?.map { ParafusoProfile(it.id, it.name, it.child, it.accent) }
+            ?.filter { it.id > 0 }
+            ?.distinctBy { it.id }
+            .orEmpty()
+        val availableProfiles = if (data.profiles != null && restoredProfiles.isNotEmpty()) {
+            profileStore.save(restoredProfiles)
+            restoredProfiles
+        } else {
+            profileStore.ensureDefault()
+        }
+        if (data.profiles != null) {
+            val restoredActiveId = resolveActiveProfileId(availableProfiles, data.activeProfileId)
+            restoredActiveId?.let(profileStore::setActive)
+        }
+        val restoredProfileIds = availableProfiles.mapTo(mutableSetOf()) { it.id }
+
+        // Null means the field did not exist in an older backup. An empty present list is a
+        // legitimate snapshot with no profile favourites, so it intentionally has no writes.
+        data.profileFavorites?.forEach { entry ->
+            if (entry.profileId in restoredProfileIds) {
+                FavoritesStore.replaceAllForProfile(
+                    context, entry.profileId, entry.favoriteSeries.toSet(), entry.favoriteChannels.toSet()
+                )
+            }
+        }
+        data.profilePlaybackPositions?.forEach { entry ->
+            if (entry.profileId in restoredProfileIds) {
+                PlaybackPositionStore.restoreForProfileBackup(context, entry.profileId, entry.payload)
+            }
+        }
+        data.profileWatchedMarks?.forEach { entry ->
+            if (entry.profileId in restoredProfileIds) {
+                WatchedStore.restoreForProfileBackup(context, entry.profileId, entry.marks.toSet())
+            }
+        }
 
         // Restore IPTV provider configs. The backup is a snapshot of the whole list, so a
         // present list replaces the current one outright (no merge); an absent list (old
@@ -417,10 +509,14 @@ class BackupManager(private val context: Context) {
         // them via REPLACE) and firstWatchedAt survives. Old backups without an id fall back
         // to a per-entry key derived from lastWatchedAt, which is still unique per entry.
         for (h in watchHistory) {
+            val historyProfileId = h.profileId
+                ?.takeIf { it in restoredProfileIds }
+                ?: availableProfiles.firstOrNull()?.id
+                ?: 1
             db.watchHistoryDao().insert(
                 WatchHistoryEntity(
                     id = h.id ?: "backup_${h.channelId}_${h.lastWatchedAt}",
-                    profileId = h.profileId?.takeIf { it > 0 } ?: 1,
+                    profileId = historyProfileId,
                     channelId = h.channelId, channelName = h.channelName,
                     mediaType = h.mediaType, positionMs = h.positionMs,
                     durationMs = h.durationMs,
@@ -472,6 +568,10 @@ class BackupManager(private val context: Context) {
         liveEnabled = liveEnabled, moviesEnabled = moviesEnabled,
         seriesEnabled = seriesEnabled, url = url, username = username,
         password = password, userAgent = userAgent
+    )
+
+    private fun ParafusoProfile.toBackup() = ProfileBackup(
+        id = id, name = name, child = child, accent = accent
     )
 
     private fun MediaServerConfig.toBackup() = MediaServerBackup(

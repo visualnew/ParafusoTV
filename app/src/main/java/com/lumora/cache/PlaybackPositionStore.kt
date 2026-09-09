@@ -104,6 +104,28 @@ object PlaybackPositionStore {
         writeExecutor.execute { runCatching { ParafusoProfileScope.file(context, FILE_NAME).delete() } }
     }
 
+    /** Returns the existing on-disk JSON shape for one profile without changing the active one. */
+    @Synchronized
+    internal fun exportForProfileBackup(context: Context, profileId: Int): String {
+        val normalizedId = normalizedProfileId(profileId)
+        if (ParafusoProfileScope.activeId(context) == normalizedId) {
+            // Include a not-yet-debounced in-memory position in a backup of the active profile.
+            return encode(ensureLoaded(context))
+        }
+        val scoped = profileFile(context, normalizedId)
+        val source = if (scoped.exists() || normalizedId != 1) scoped else File(context.filesDir, FILE_NAME)
+        return source.takeIf { it.exists() }?.readText() ?: "{}"
+    }
+
+    /** Restores an already-validated backup payload for one profile only. */
+    @Synchronized
+    internal fun restoreForProfileBackup(context: Context, profileId: Int, payload: String) {
+        JSONObject(payload) // Reject malformed input before replacing an existing profile file.
+        val normalizedId = normalizedProfileId(profileId)
+        writeToFile(profileFile(context, normalizedId), payload)
+        if (ParafusoProfileScope.activeId(context) == normalizedId) clearMemory()
+    }
+
     /** Most recently-completed episode snapshot per series, only for series with no
      *  in-progress entry left (those are already in Continue Watching). This is what feeds
      *  the Home "up next" tiles: a series whose watched trail ends at a completed episode
@@ -212,9 +234,16 @@ object PlaybackPositionStore {
 
     private fun persist(context: Context, map: Map<String, PlaybackPosition>) {
         try {
-            val obj = JSONObject()
-            for ((key, pos) in map) {
-                obj.put(key, JSONObject().apply {
+            writeToFile(ParafusoProfileScope.file(context, FILE_NAME), encode(map))
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to save: ${e.message}")
+        }
+    }
+
+    private fun encode(map: Map<String, PlaybackPosition>): String {
+        val obj = JSONObject()
+        for ((key, pos) in map) {
+            obj.put(key, JSONObject().apply {
                     put("positionMs", pos.positionMs)
                     put("durationMs", pos.durationMs)
                     put("updatedAt", pos.updatedAt)
@@ -244,12 +273,9 @@ object PlaybackPositionStore {
                             }
                         })
                     }
-                })
-            }
-            writeToFile(ParafusoProfileScope.file(context, FILE_NAME), obj.toString())
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed to save: ${e.message}")
+            })
         }
+        return obj.toString()
     }
 
     /** Atomically writes JSON to file: write to a temp file, then rename to prevent corruption on process death. */
@@ -258,4 +284,9 @@ object PlaybackPositionStore {
         tempFile.writeText(json)
         tempFile.renameTo(file)
     }
+
+    private fun profileFile(context: Context, profileId: Int): File =
+        File(context.filesDir, "${FILE_NAME}_profile_${profileId}")
+
+    private fun normalizedProfileId(profileId: Int): Int = profileId.takeIf { it > 0 } ?: 1
 }

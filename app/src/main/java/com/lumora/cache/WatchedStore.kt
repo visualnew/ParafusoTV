@@ -81,6 +81,29 @@ object WatchedStore {
         runCatching { ParafusoProfileScope.file(context, FILE_NAME).delete() }
     }
 
+    /** Snapshot for backup of one explicit profile; no file is an explicit empty snapshot. */
+    @Synchronized
+    internal fun exportForProfileBackup(context: Context, profileId: Int): Set<String> {
+        val normalizedId = normalizedProfileId(profileId)
+        if (ParafusoProfileScope.activeId(context) == normalizedId) {
+            return LinkedHashSet(ensureLoaded(context))
+        }
+        val scoped = profileFile(context, normalizedId)
+        val source = if (scoped.exists() || normalizedId != 1) scoped else File(context.filesDir, FILE_NAME)
+        if (!source.exists()) return emptySet()
+        return source.bufferedReader().useLines { lines ->
+            lines.filter { it.isNotBlank() }.toCollection(LinkedHashSet())
+        }
+    }
+
+    /** Replaces watched marks for one explicit profile without switching the active profile. */
+    @Synchronized
+    internal fun restoreForProfileBackup(context: Context, profileId: Int, marks: Set<String>) {
+        val normalizedId = normalizedProfileId(profileId)
+        persistToFile(profileFile(context, normalizedId), marks)
+        if (ParafusoProfileScope.activeId(context) == normalizedId) clearMemory()
+    }
+
     private fun ensureLoaded(context: Context): MutableSet<String> {
         cache?.let { return it }
         val loaded = LinkedHashSet<String>()
@@ -111,15 +134,23 @@ object WatchedStore {
      */
     private fun persist(context: Context, set: Set<String>) {
         runCatching {
-            val target = ParafusoProfileScope.file(context, FILE_NAME)
-            val temp = File(target.absolutePath + ".tmp")
-            temp.bufferedWriter().use { out ->
-                for (key in set) {
-                    out.append(key)
-                    out.append('\n')
-                }
-            }
-            temp.renameTo(target)
+            persistToFile(ParafusoProfileScope.file(context, FILE_NAME), set)
         }.onFailure { Log.w(TAG, "Failed to save watched marks: ${it.message}") }
     }
+
+    private fun persistToFile(target: File, set: Set<String>) {
+        val temp = File(target.absolutePath + ".tmp")
+        temp.bufferedWriter().use { out ->
+            for (key in set) {
+                out.append(key)
+                out.append('\n')
+            }
+        }
+        temp.renameTo(target)
+    }
+
+    private fun profileFile(context: Context, profileId: Int): File =
+        File(context.filesDir, "${FILE_NAME}_profile_${profileId}")
+
+    private fun normalizedProfileId(profileId: Int): Int = profileId.takeIf { it > 0 } ?: 1
 }
