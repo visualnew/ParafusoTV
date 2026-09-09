@@ -680,6 +680,7 @@ class MainActivity : AppCompatActivity() {
         presentationShellFor(
             formFactor = deviceFormFactor,
             installTvLegacyChrome = { installLegacyTvDashboardChrome() },
+            renderTvLegacyNavigationSelection = { renderLegacyTvDashboardRailSelection() },
             installMobileLegacyChrome = { installLegacyMobileDashboardChrome() }
         )
     }

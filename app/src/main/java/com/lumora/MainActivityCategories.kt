@@ -1670,7 +1670,11 @@ private fun MainActivity.installLegacyTvDashboardNavigationActions() {
 }
 
 internal fun MainActivity.updateDashboardRailSelection() {
-    if (!isTv) return
+    presentationShell.renderLegacyNavigationSelection()
+}
+
+/** Existing TV-only rail selection renderer, invoked by [PresentationShell] without recursion. */
+internal fun MainActivity.renderLegacyTvDashboardRailSelection() {
     val items = listOf(
         binding.navRailHome, binding.navRailLive, binding.navRailFilms, binding.navRailSeries,
         binding.navRailFavorites, binding.navRailRecordings, binding.navRailGuide, binding.navRailSettings
