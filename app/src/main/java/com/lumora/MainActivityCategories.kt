@@ -1601,13 +1601,14 @@ internal fun MainActivity.applyStatus() {
 /** Permanent navigation used on TV/landscape. The original compact tab chrome remains on
  * phones; on TV the rail becomes the primary navigation surface and the old tabs are hidden. */
 internal fun MainActivity.setupDashboardNavigation() {
-    val rail = binding.dashboardRail
-    if (!isTv) {
-        rail.visibility = View.GONE
-        binding.mainContent.setPadding(0, binding.mainContent.paddingTop, binding.mainContent.paddingRight, binding.mainContent.paddingBottom)
-        return
-    }
+    presentationShell.installLegacyChrome()
+    if (!isTv) return
+    installLegacyTvDashboardNavigationActions()
+}
 
+/** Existing TV chrome only: rail visibility, content offset, and legacy top-tab visibility. */
+internal fun MainActivity.installLegacyTvDashboardChrome() {
+    val rail = binding.dashboardRail
     rail.visibility = View.VISIBLE
     binding.mainContent.setPadding(
         resources.getDimensionPixelSize(R.dimen.dashboard_rail_width),
@@ -1621,7 +1622,21 @@ internal fun MainActivity.setupDashboardNavigation() {
     listOf(binding.tabHome, binding.tabLive, binding.tabSeries, binding.tabFilms, binding.tabDiscover, binding.tabDownloads).forEach {
         it.visibility = View.GONE
     }
+}
 
+/** Existing mobile chrome only: hide the TV rail and retain the legacy content offset. */
+internal fun MainActivity.installLegacyMobileDashboardChrome() {
+    binding.dashboardRail.visibility = View.GONE
+    binding.mainContent.setPadding(
+        0,
+        binding.mainContent.paddingTop,
+        binding.mainContent.paddingRight,
+        binding.mainContent.paddingBottom
+    )
+}
+
+/** Existing TV rail actions remain Activity-owned navigation wiring. */
+private fun MainActivity.installLegacyTvDashboardNavigationActions() {
     binding.navRailHome.setOnClickListener { selectHome() }
     binding.navRailLive.setOnClickListener { selectTab(0) }
     binding.navRailFilms.setOnClickListener { selectTab(2) }

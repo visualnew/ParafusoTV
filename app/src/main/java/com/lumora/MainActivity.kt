@@ -64,6 +64,8 @@ import com.lumora.torrent.TorrentForegroundService
 import com.lumora.anime.AnimeCatalogClient
 import com.lumora.player.PlayerManager
 import com.lumora.player.PlayerTrackController
+import com.lumora.presentation.PresentationShell
+import com.lumora.presentation.presentationShellFor
 import com.lumora.util.DeviceFormFactor
 import com.lumora.util.resolveDeviceFormFactor
 import com.lumora.util.groupDuplicateSeries
@@ -673,6 +675,14 @@ class MainActivity : AppCompatActivity() {
     internal val catchupProgrammeAdapter = com.lumora.adapter.CatchupAdapter { row -> playCatchup(row) }
     /** Centralized presentation form factor; orientation remains intentionally out of scope. */
     internal val deviceFormFactor by lazy { resolveDeviceFormFactor(this) }
+    /** Installs only the existing form-factor-specific chrome; all other UI remains legacy. */
+    internal val presentationShell: PresentationShell by lazy {
+        presentationShellFor(
+            formFactor = deviceFormFactor,
+            installTvLegacyChrome = { installLegacyTvDashboardChrome() },
+            installMobileLegacyChrome = { installLegacyMobileDashboardChrome() }
+        )
+    }
     /** Legacy compatibility bridge for the existing Activity and extension call sites. */
     internal val isTv: Boolean
         get() = deviceFormFactor == DeviceFormFactor.TV
