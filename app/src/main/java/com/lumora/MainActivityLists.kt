@@ -31,6 +31,7 @@ import com.lumora.util.extractLeadingTag
 import com.lumora.util.isUnreleasedEpisode
 import com.lumora.util.rawMediaItemId
 import com.lumora.util.versionGroupContaining
+import com.lumora.util.DeviceFormFactor
 import com.lumora.data.remote.stalker.StalkerProvider
 import com.lumora.data.remote.jellyfin.JellyfinProvider
 import com.lumora.data.remote.plex.PlexProvider
@@ -574,6 +575,7 @@ internal fun MainActivity.showContentDetail(item: Channel, versionGroup: List<Ch
     // detail re-opened on a sibling version (the chips further down) updates it too.
     detailReturnItemId = item.id
     binding.mainContent.visibility = View.GONE
+    if (deviceFormFactor == DeviceFormFactor.TV) binding.dashboardRail.visibility = View.GONE
     binding.contentDetailLayout.visibility = View.VISIBLE
     applyStatus()
 
@@ -1340,6 +1342,9 @@ internal fun MainActivity.hideContentDetail() {
     nowShowingDetailId = null
     binding.contentDetailLayout.visibility = View.GONE
     binding.mainContent.visibility = View.VISIBLE
+    // The rail is a sibling above the detail layout. Restore it before requesting either the
+    // exact poster or the TV fallback so FocusFinder cannot reach it while detail is open.
+    if (deviceFormFactor == DeviceFormFactor.TV) binding.dashboardRail.visibility = View.VISIBLE
     // Back out of a series/film and you should be standing where you left: on that poster,
     // in that shelf, at that scroll position. The list underneath was only hidden, never
     // rebuilt, so the view is still there to focus - restoreTabFocus() (which lands on the
@@ -1405,6 +1410,12 @@ internal fun MainActivity.showEpgSourceListDialog() {
 }
 
 internal fun MainActivity.restoreTabFocus() {
+    if (deviceFormFactor == DeviceFormFactor.TV) {
+        // TV tabs are deliberately GONE behind the dashboard shell. A visible rail item is
+        // the stable fallback when the prior card/row was recycled during an update.
+        binding.dashboardRail.post { focusTvDashboardRailForCurrentContent() }
+        return
+    }
     val target = when {
         showingHome -> binding.tabHome
         showingDiscover -> binding.tabDiscover

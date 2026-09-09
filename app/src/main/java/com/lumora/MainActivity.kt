@@ -2021,6 +2021,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun goHomeFromBack() {
         selectHome()
+        if (deviceFormFactor == DeviceFormFactor.TV) {
+            // The TV shell hides tabHome. Wait for the freshly submitted first shelf, then
+            // retain a visible rail destination when Home has no focusable card yet.
+            focusFirstHomeCardWhenReady {
+                if (showingHome) binding.navRailHome.requestFocus()
+            }
+            return
+        }
         // Same focus-handoff reason as above: whatever was focused belonged to the tab that
         // just went GONE. The Home tab button is always present and is where a user landing
         // on Home by pressing the tab would be anyway.

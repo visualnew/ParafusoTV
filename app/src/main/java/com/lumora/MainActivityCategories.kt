@@ -1738,12 +1738,20 @@ private fun MainActivity.canEnterTvDashboardRailFromContent(): Boolean =
 
 /** The rail item representing the content currently visible. Guide remains part of Live in
  * this legacy UI; Favorites is a Live category but has its own dashboard destination. */
-private fun MainActivity.tvDashboardRailItemForCurrentContent(): View = when {
+internal fun MainActivity.tvDashboardRailItemForCurrentContent(): View = when {
     showingHome -> binding.navRailHome
     activeTab == 0 && selectedRowId == FAVOURITES_CATEGORY_ID -> binding.navRailFavorites
     activeTab == 1 -> binding.navRailSeries
     activeTab == 2 -> binding.navRailFilms
     else -> binding.navRailLive
+}
+
+/** Visible-TV fallback for a focus owner that was removed by an async catalog update.
+ * Mobile keeps its legacy tab-based recovery path in [restoreTabFocus]. */
+internal fun MainActivity.focusTvDashboardRailForCurrentContent(): Boolean {
+    if (deviceFormFactor != DeviceFormFactor.TV) return false
+    val target = tvDashboardRailItemForCurrentContent()
+    return target.isShown && target.isFocusable && target.requestFocus()
 }
 
 /** A VOD card is at the dashboard edge only when its own tab is visible and the category
@@ -1789,13 +1797,17 @@ private fun MainActivity.focusFirstVodContentForDashboardRail(content: RecyclerV
  * focusable. A catalog refresh may leave the prior card detached, so this is the rail's
  * safe DPAD_RIGHT fallback.
  */
-internal fun MainActivity.focusFirstHomeCardWhenReady() {
+internal fun MainActivity.focusFirstHomeCardWhenReady(onUnavailable: (() -> Unit)? = null) {
     fun attempt(): Boolean {
         val shelf = binding.homeContent.findViewHolderForAdapterPosition(0)?.itemView ?: return false
         val posters = shelf.findViewById<RecyclerView>(R.id.shelfItems) ?: return false
         return posters.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus() == true
     }
-    binding.homeContent.post { if (!attempt()) binding.homeContent.post { attempt() } }
+    binding.homeContent.post {
+        if (!attempt()) binding.homeContent.post {
+            if (!attempt()) onUnavailable?.invoke()
+        }
+    }
 }
 
 internal fun MainActivity.updateDashboardRailSelection() {
