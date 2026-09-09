@@ -1895,9 +1895,7 @@ internal fun MainActivity.showProviderSettings() {
 /** Legacy name retained while callers migrate to the explicit administrative PIN terminology. */
 internal fun MainActivity.hasParentalPin(): Boolean = administrativePinStore.hasPin()
 
-/** 4-digit PIN entry. Calls onCorrect only if it matches the saved PIN. Wrong attempts are
- *  counted and, past [MAX_PIN_ATTEMPTS], entry is refused for [PIN_LOCKOUT_MS] - a 4-digit
- *  space is trivially brute-forceable without the cap. */
+/** 4-digit PIN entry. Calls onCorrect only if it matches the saved administrative PIN. */
 internal fun MainActivity.promptForPin(title: String, onCorrect: () -> Unit) {
     val now = System.currentTimeMillis()
     val lockoutUntil = administrativePinStore.lockoutUntilMillis()
@@ -1933,6 +1931,14 @@ internal fun MainActivity.promptForPin(title: String, onCorrect: () -> Unit) {
 
 /** Sets (or changes) the 4-digit PIN - entered twice so a typo doesn't lock the user out. */
 internal fun MainActivity.showSetPinDialog(label: TextView) {
+    showSetAdministrativePinDialog {
+        label.text = getString(R.string.sett_change_parental_pin)
+        Toast.makeText(this, getString(R.string.sett_parental_pin_set), Toast.LENGTH_SHORT).show()
+    }
+}
+
+/** Reuses the legacy PIN-creation dialog for an authorization flow that has no settings label. */
+internal fun MainActivity.showSetAdministrativePinDialog(onConfigured: () -> Unit) {
     val input = EditText(this).apply {
         inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
         filters = arrayOf(android.text.InputFilter.LengthFilter(4))
@@ -1958,8 +1964,7 @@ internal fun MainActivity.showSetPinDialog(label: TextView) {
                 .setPositiveButton(getString(R.string.save)) { _, _ ->
                     if (confirm.text.toString() == pin) {
                         if (administrativePinStore.setPin(pin)) {
-                            label.text = getString(R.string.sett_change_parental_pin)
-                            Toast.makeText(this, getString(R.string.sett_parental_pin_set), Toast.LENGTH_SHORT).show()
+                            onConfigured()
                         } else {
                             Toast.makeText(this, getString(R.string.sett_pin_length_error), Toast.LENGTH_SHORT).show()
                         }

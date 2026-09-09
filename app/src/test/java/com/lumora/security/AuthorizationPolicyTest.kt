@@ -38,6 +38,39 @@ class AuthorizationPolicyTest {
     }
 
     @Test
+    fun `leaving a child profile without an administrative PIN requires secure setup`() {
+        assertEquals(
+            CredentialRequirement.ADMIN_PIN_SETUP,
+            AuthorizationPolicy.requirementFor(
+                AuthorizationRequest.SwitchProfile(activeProfileIsChild = true, destinationHasPin = false),
+                adminPinConfigured = false
+            )
+        )
+    }
+
+    @Test
+    fun `child to protected profile without an administrative PIN requires setup before both credentials`() {
+        assertEquals(
+            CredentialRequirement.ADMIN_PIN_SETUP,
+            AuthorizationPolicy.requirementFor(
+                AuthorizationRequest.SwitchProfile(activeProfileIsChild = true, destinationHasPin = true),
+                adminPinConfigured = false
+            )
+        )
+    }
+
+    @Test
+    fun `configured administrative PIN preserves the child to protected profile requirement`() {
+        assertEquals(
+            CredentialRequirement.ADMIN_AND_DESTINATION_PROFILE_PIN,
+            AuthorizationPolicy.requirementFor(
+                AuthorizationRequest.SwitchProfile(activeProfileIsChild = true, destinationHasPin = true),
+                adminPinConfigured = true
+            )
+        )
+    }
+
+    @Test
     fun `unlocking child protected content needs the administrative PIN`() {
         assertEquals(
             CredentialRequirement.ADMIN_PIN,

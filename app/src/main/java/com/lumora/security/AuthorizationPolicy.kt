@@ -47,4 +47,25 @@ internal object AuthorizationPolicy {
         is AuthorizationRequest.RestoreBackup ->
             if (request.adminPinConfigured) CredentialRequirement.ADMIN_PIN else CredentialRequirement.NONE
     }
+
+    /**
+     * Resolves an administrative requirement into its bootstrap flow when this device has not
+     * configured an administrative PIN yet. The caller must ask this policy again only after
+     * setup succeeds, rather than treating a missing PIN as authorization.
+     */
+    fun requirementFor(
+        request: AuthorizationRequest,
+        adminPinConfigured: Boolean
+    ): CredentialRequirement {
+        val requirement = requirementFor(request)
+        return if (!adminPinConfigured && requirement.requiresAdministrativePin()) {
+            CredentialRequirement.ADMIN_PIN_SETUP
+        } else {
+            requirement
+        }
+    }
+
+    private fun CredentialRequirement.requiresAdministrativePin(): Boolean =
+        this == CredentialRequirement.ADMIN_PIN ||
+            this == CredentialRequirement.ADMIN_AND_DESTINATION_PROFILE_PIN
 }

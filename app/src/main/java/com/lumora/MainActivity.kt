@@ -79,6 +79,9 @@ import com.lumora.data.update.AppUpdateChecker
 import com.lumora.data.update.AppUpdateInstaller
 import com.lumora.player.playback.AvOffsetManager
 import com.lumora.security.AdministrativePinStore
+import com.lumora.security.AuthorizationPolicy
+import com.lumora.security.AuthorizationRequest
+import com.lumora.security.CredentialRequirement
 import com.lumora.state.AppState
 import com.lumora.state.ProfileSession
 import kotlinx.coroutines.*
@@ -1262,7 +1265,7 @@ class MainActivity : AppCompatActivity() {
         root.addView(sub)
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER }
         initial.forEach { profile ->
-            row.addView(profileCard(profile) { profileSession.activate(profile.id); dialog.dismiss() })
+            row.addView(profileCard(profile) { requestProfileActivation(profile, dialog) })
         }
         if (initial.size < 4) {
             val add = TextView(this).apply {
@@ -1301,6 +1304,69 @@ class MainActivity : AppCompatActivity() {
             } else false
         }
     }.also { it.layoutParams = LinearLayout.LayoutParams(190, 170).apply { setMargins(12, 0, 12, 0) } }
+
+    /**
+     * Runs only the credential sequence selected by AuthorizationPolicy. In particular,
+     * activation stays last so cancelling or failing any dialog cannot change active_id.
+     */
+    private fun requestProfileActivation(destination: ParafusoProfile, chooser: Dialog) {
+        val request = AuthorizationRequest.SwitchProfile(
+            activeProfileIsChild = profileSession.isChild(),
+            destinationHasPin = ParafusoParentalStore(this).hasPin(destination.id)
+        )
+        when (AuthorizationPolicy.requirementFor(request, administrativePinStore.hasPin())) {
+            CredentialRequirement.NONE -> activateProfileAfterAuthorization(destination, chooser)
+            CredentialRequirement.DESTINATION_PROFILE_PIN ->
+                promptForDestinationProfilePin(destination) { activateProfileAfterAuthorization(destination, chooser) }
+            CredentialRequirement.ADMIN_PIN ->
+                promptForPin("PIN administrativo") { completeProfileActivationAfterAdministrativeAuthorization(request, destination, chooser) }
+            CredentialRequirement.ADMIN_AND_DESTINATION_PROFILE_PIN ->
+                promptForPin("PIN administrativo") { completeProfileActivationAfterAdministrativeAuthorization(request, destination, chooser) }
+            CredentialRequirement.ADMIN_PIN_SETUP ->
+                showSetAdministrativePinDialog {
+                    completeProfileActivationAfterAdministrativeAuthorization(request, destination, chooser)
+                }
+        }
+    }
+
+    private fun completeProfileActivationAfterAdministrativeAuthorization(
+        request: AuthorizationRequest.SwitchProfile,
+        destination: ParafusoProfile,
+        chooser: Dialog
+    ) {
+        when (AuthorizationPolicy.requirementFor(request)) {
+            CredentialRequirement.ADMIN_AND_DESTINATION_PROFILE_PIN,
+            CredentialRequirement.DESTINATION_PROFILE_PIN ->
+                promptForDestinationProfilePin(destination) { activateProfileAfterAuthorization(destination, chooser) }
+            else -> activateProfileAfterAuthorization(destination, chooser)
+        }
+    }
+
+    private fun promptForDestinationProfilePin(destination: ParafusoProfile, onCorrect: () -> Unit) {
+        val pin = EditText(this).apply {
+            hint = "PIN"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD
+            isSingleLine = true
+        }
+        AlertDialog.Builder(this)
+            .setTitle("PIN do perfil")
+            .setMessage("Digite o PIN para entrar neste perfil.")
+            .setView(pin)
+            .setPositiveButton("Continuar") { _, _ ->
+                if (ParafusoParentalStore(this).verifyPin(destination.id, pin.text.toString())) {
+                    onCorrect()
+                } else {
+                    Toast.makeText(this, "PIN incorreto.", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun activateProfileAfterAuthorization(destination: ParafusoProfile, chooser: Dialog) {
+        profileSession.activate(destination.id)
+        chooser.dismiss()
+    }
 
     private fun showCreateProfileDialog(store: ParafusoProfileStore, parent: Dialog) {
         val box = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(12, 4, 12, 0) }
