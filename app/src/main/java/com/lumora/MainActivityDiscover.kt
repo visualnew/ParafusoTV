@@ -945,6 +945,20 @@ internal fun MainActivity.isAdultHomeItem(item: Channel): Boolean {
         isAdultCategory(item.name)
 }
 
+/**
+ * Keeps the first catalog occurrence for each id, matching [isAdultHomeItem]'s
+ * [List.firstOrNull] semantics without repeating a full catalog scan per TV Home card.
+ * The map is deliberately short-lived: callers build it for one Home composition only.
+ */
+internal fun firstCatalogEntriesById(channels: Iterable<Channel>): Map<String, Channel> {
+    val firstById = HashMap<String, Channel>()
+    for (channel in channels) {
+        val id = channel.id
+        if (id.isNotBlank() && !firstById.containsKey(id)) firstById[id] = channel
+    }
+    return firstById
+}
+
 /** First unwatched episode of a series in play order (season-major, then episode
  *  number) - the same ordering the detail page and auto-advance use. Null when the
  *  whole series is watched: a completed series gets no up-next tile. */
@@ -1251,13 +1265,23 @@ private fun MainActivity.buildMobileHomeShelves(): List<ContentShelf> {
 private fun MainActivity.buildTvHomeShelves(): List<ContentShelf> {
     val shelves = mutableListOf<ContentShelf>()
     val hidden = getHiddenHomeShelves()
+    // The legacy Home filter must resolve a catalog entry first for old snapshot/episode
+    // tiles. TV's catalog shelves already hold large derived catalog lists, though, so
+    // repeating that linear lookup per item turned one Home render into O(N²). Preserve the
+    // same first-occurrence semantics with one ephemeral lookup for this composition.
+    val catalogById = firstCatalogEntriesById(allChannels)
+    fun isAdultTvCatalogItem(item: Channel): Boolean {
+        val catalog = item.id.takeIf { it.isNotBlank() }?.let(catalogById::get)
+        return isAdultCategory(catalog?.categoryName ?: item.categoryName, catalog?.group ?: item.group) ||
+            isAdultCategory(item.name)
+    }
 
     val continueItems = buildHomeContinueWatchingItems()
     if (continueItems.isNotEmpty()) {
         shelves.add(ContentShelf(getString(R.string.category_continue_watching), continueItems))
     }
 
-    val liveItems = liveChannels.filterNot(::isAdultHomeItem)
+    val liveItems = liveChannels.filterNot(::isAdultTvCatalogItem)
     if (liveItems.isNotEmpty()) {
         shelves.add(ContentShelf(getString(R.string.tab_live_tv), liveItems))
     }
@@ -1271,7 +1295,7 @@ private fun MainActivity.buildTvHomeShelves(): List<ContentShelf> {
             seriesList.filter { it.id in favouriteVodIds } +
             filmList.filter { it.id in favouriteVodIds }
         )
-        .filterNot(::isAdultHomeItem)
+        .filterNot(::isAdultTvCatalogItem)
         .distinctBy { it.id.ifBlank { it.url } }
     if (favouriteItems.isNotEmpty()) {
         shelves.add(ContentShelf(getString(R.string.category_favourites), favouriteItems))
@@ -1280,12 +1304,12 @@ private fun MainActivity.buildTvHomeShelves(): List<ContentShelf> {
     // The catalog already has a stable newest-first helper for its VOD shelves. Its default
     // limit of 30 keeps this Home surface responsive without a new query or recommendation
     // system, and filtering happens before limiting so adult-only entries never consume slots.
-    val filmItems = newestByDate(filmList.filterNot(::isAdultHomeItem))
+    val filmItems = newestByDate(filmList.filterNot(::isAdultTvCatalogItem))
     if (filmItems.isNotEmpty()) {
         shelves.add(ContentShelf(getString(R.string.films_tab), filmItems))
     }
 
-    val seriesItems = newestByDate(seriesList.filterNot(::isAdultHomeItem))
+    val seriesItems = newestByDate(seriesList.filterNot(::isAdultTvCatalogItem))
     if (seriesItems.isNotEmpty()) {
         shelves.add(ContentShelf(getString(R.string.series_tab), seriesItems))
     }
