@@ -17,7 +17,8 @@ import java.util.concurrent.ConcurrentHashMap
  */
 class AppState(
     val catalog: CatalogState = CatalogState(),
-    val navigation: NavigationCoordinator = NavigationCoordinator()
+    val navigation: NavigationCoordinator = NavigationCoordinator(),
+    val status: StatusState = StatusState()
 )
 
 /**

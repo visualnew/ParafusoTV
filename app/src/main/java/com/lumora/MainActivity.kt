@@ -547,8 +547,10 @@ class MainActivity : AppCompatActivity() {
     internal var revealPluginInPane: ((String) -> Unit)? = null
     /** What the last setStatus() asked for, kept because whether it can actually be shown
      *  depends on screen state that changes after the fact - see applyStatus(). */
-    internal var statusText = ""
-    internal var statusWanted = false
+    internal val statusText: String
+        get() = appState.status.statusText
+    internal val statusWanted: Boolean
+        get() = appState.status.statusWanted
     /** Whether the nav rail's Plugins row is showing its installed-plugin children. */
     internal var navPluginsExpanded = false
     /** Rebuilds those child rows - the pane calls it after anything that changes a plugin's

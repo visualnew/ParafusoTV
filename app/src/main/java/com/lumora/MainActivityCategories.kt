@@ -1560,8 +1560,7 @@ internal fun MainActivity.onCategorySelected(category: CategoryFilter) {
 }
 
 internal fun MainActivity.setStatus(text: String, visible: Boolean) {
-    statusText = text
-    statusWanted = visible
+    appState.status.update(text, visible)
     applyStatus()
 }
 
@@ -1593,7 +1592,7 @@ internal fun MainActivity.applyStatus() {
     // results ("N items", errors) don't - "..." is what already distinguishes them
     // at every call site, no need for a second parameter everywhere.
     binding.statusSpinner.visibility =
-        if (show && statusText.trimEnd().endsWith("...")) View.VISIBLE else View.GONE
+        if (show && appState.status.isLoading) View.VISIBLE else View.GONE
 }
 
 
