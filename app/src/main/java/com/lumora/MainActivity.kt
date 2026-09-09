@@ -1294,12 +1294,14 @@ class MainActivity : AppCompatActivity() {
         setOnClickListener { onSelect() }
         setOnLongClickListener {
             if (profile.child) {
-                val pin = EditText(this@MainActivity).apply { hint = "PIN"; inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD; isSingleLine = true }
-                AlertDialog.Builder(this@MainActivity).setTitle("Controle parental").setMessage("Digite o PIN para alterar este perfil.").setView(pin)
-                    .setPositiveButton("Continuar") { _, _ ->
-                        if (ParafusoParentalStore(this@MainActivity).verifyPin(profile.id, pin.text.toString())) showSetProfilePinDialog(profile)
-                        else Toast.makeText(this@MainActivity, "PIN incorreto.", Toast.LENGTH_SHORT).show()
-                    }.setNegativeButton(android.R.string.cancel, null).show()
+                authorizeAdministrativeAction(AuthorizationRequest.ChangeProfilePin) {
+                    val pin = EditText(this@MainActivity).apply { hint = "PIN"; inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD; isSingleLine = true }
+                    AlertDialog.Builder(this@MainActivity).setTitle("Controle parental").setMessage("Digite o PIN para alterar este perfil.").setView(pin)
+                        .setPositiveButton("Continuar") { _, _ ->
+                            if (ParafusoParentalStore(this@MainActivity).verifyPin(profile.id, pin.text.toString())) showSetProfilePinDialog(profile)
+                            else Toast.makeText(this@MainActivity, "PIN incorreto.", Toast.LENGTH_SHORT).show()
+                        }.setNegativeButton(android.R.string.cancel, null).show()
+                }
                 true
             } else false
         }
@@ -1401,6 +1403,12 @@ class MainActivity : AppCompatActivity() {
 
     /** Full ParafusoTV parental-control editor. Everything is local and scoped to a profile. */
     internal fun showParafusoParentalSettings() {
+        authorizeAdministrativeAction(AuthorizationRequest.EditParentalControls) {
+            showAuthorizedParafusoParentalSettings()
+        }
+    }
+
+    private fun showAuthorizedParafusoParentalSettings() {
         val profileStore = ParafusoProfileStore(this)
         val profiles = profileStore.ensureDefault().toMutableList()
         var selected = profiles.indexOfFirst { it.id == profileSession.activeId() }.takeIf { it >= 0 } ?: 0

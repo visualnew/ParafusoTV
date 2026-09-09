@@ -25,6 +25,9 @@ import com.lumora.pairing.QrPairingManager
 import com.lumora.player.PlayerManager
 import com.lumora.security.AdministrativePinStore
 import com.lumora.security.AdministrativePinVerification
+import com.lumora.security.AuthorizationPolicy
+import com.lumora.security.AuthorizationRequest
+import com.lumora.security.CredentialRequirement
 import com.lumora.util.normalizeServerUrl
 import com.lumora.data.local.entity.EpgSourceEntity
 import com.lumora.data.backup.BackupManager
@@ -561,28 +564,29 @@ internal fun MainActivity.showProviderSettings() {
     var editingMediaServerId: String? = null
 
     jellyfinQuickConnectButton.setOnClickListener {
-        val url = jellyfinUrl.text.toString().trim().let { if (it.isBlank()) it else normalizeServerUrl(it, defaultScheme = "https") }
-        if (url.isBlank()) {
-            Toast.makeText(this, getString(R.string.sett_enter_server_url_first), Toast.LENGTH_SHORT).show()
-            return@setOnClickListener
-        }
-        val editingId = editingMediaServerId
-        val typedName = providerNameInput.text.toString().trim().ifBlank { null }
-        scope.launch {
-            var lastMsg = ""
-            val ok = performJellyfinQuickConnect(
-                url,
-                existingId = editingId,
-                name = typedName
-            ) { msg -> lastMsg = msg; jellyfinQuickConnectLabel.text = msg }
-            jellyfinQuickConnectLabel.text = getString(R.string.sign_in_with_quick_connect)
-            if (ok) {
-                
-                dialog.dismiss()
-                Toast.makeText(this@showProviderSettings, getString(R.string.sett_signed_in_via_quick_connect), Toast.LENGTH_SHORT).show()
-                loadAllConfiguredProviders(forceRefresh = true)
-            } else {
-                Toast.makeText(this@showProviderSettings, lastMsg, Toast.LENGTH_LONG).show()
+        authorizeAdministrativeAction(AuthorizationRequest.EditProviders) quickConnect@{
+            val url = jellyfinUrl.text.toString().trim().let { if (it.isBlank()) it else normalizeServerUrl(it, defaultScheme = "https") }
+            if (url.isBlank()) {
+                Toast.makeText(this, getString(R.string.sett_enter_server_url_first), Toast.LENGTH_SHORT).show()
+                return@quickConnect
+            }
+            val editingId = editingMediaServerId
+            val typedName = providerNameInput.text.toString().trim().ifBlank { null }
+            scope.launch {
+                var lastMsg = ""
+                val ok = performJellyfinQuickConnect(
+                    url,
+                    existingId = editingId,
+                    name = typedName
+                ) { msg -> lastMsg = msg; jellyfinQuickConnectLabel.text = msg }
+                jellyfinQuickConnectLabel.text = getString(R.string.sign_in_with_quick_connect)
+                if (ok) {
+                    dialog.dismiss()
+                    Toast.makeText(this@showProviderSettings, getString(R.string.sett_signed_in_via_quick_connect), Toast.LENGTH_SHORT).show()
+                    loadAllConfiguredProviders(forceRefresh = true)
+                } else {
+                    Toast.makeText(this@showProviderSettings, lastMsg, Toast.LENGTH_LONG).show()
+                }
             }
         }
     }
@@ -591,31 +595,33 @@ internal fun MainActivity.showProviderSettings() {
     // nothing to type, so this button is the whole Plex form.
     var plexSignInJob: Job? = null
     plexSignInButton.setOnClickListener {
-        if (plexSignInJob?.isActive == true) return@setOnClickListener
-        plexStatus.visibility = View.VISIBLE
-        val editingId = editingMediaServerId
-        plexSignInJob = scope.launch {
-            var lastMsg = ""
-            val ok = performPlexSignIn(
-                existingId = editingId,
-                onQr = { bitmap ->
-                    plexQrImage.setImageBitmap(bitmap)
-                    plexQrImage.visibility = if (bitmap == null) View.GONE else View.VISIBLE
-                },
-                onCode = { code ->
-                    plexCode.text = code.orEmpty()
-                    plexCode.visibility = if (code == null) View.GONE else View.VISIBLE
+        authorizeAdministrativeAction(AuthorizationRequest.EditProviders) plexSignIn@{
+            if (plexSignInJob?.isActive == true) return@plexSignIn
+            plexStatus.visibility = View.VISIBLE
+            val editingId = editingMediaServerId
+            plexSignInJob = scope.launch {
+                var lastMsg = ""
+                val ok = performPlexSignIn(
+                    existingId = editingId,
+                    onQr = { bitmap ->
+                        plexQrImage.setImageBitmap(bitmap)
+                        plexQrImage.visibility = if (bitmap == null) View.GONE else View.VISIBLE
+                    },
+                    onCode = { code ->
+                        plexCode.text = code.orEmpty()
+                        plexCode.visibility = if (code == null) View.GONE else View.VISIBLE
+                    }
+                ) { msg -> lastMsg = msg; plexStatus.text = msg }
+                plexSignInLabel.text = getString(R.string.sign_in_with_plex)
+                plexQrImage.visibility = View.GONE
+                plexCode.visibility = View.GONE
+                if (ok) {
+                    dialog.dismiss()
+                    Toast.makeText(this@showProviderSettings, lastMsg, Toast.LENGTH_SHORT).show()
+                    loadAllConfiguredProviders(forceRefresh = true)
+                } else {
+                    Toast.makeText(this@showProviderSettings, lastMsg, Toast.LENGTH_LONG).show()
                 }
-            ) { msg -> lastMsg = msg; plexStatus.text = msg }
-            plexSignInLabel.text = getString(R.string.sign_in_with_plex)
-            plexQrImage.visibility = View.GONE
-            plexCode.visibility = View.GONE
-            if (ok) {
-                dialog.dismiss()
-                Toast.makeText(this@showProviderSettings, lastMsg, Toast.LENGTH_SHORT).show()
-                loadAllConfiguredProviders(forceRefresh = true)
-            } else {
-                Toast.makeText(this@showProviderSettings, lastMsg, Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -993,7 +999,11 @@ internal fun MainActivity.showProviderSettings() {
             }
         }
     }
-    showQrButton.setOnClickListener { currentType?.let { startQrServer(it) } }
+    showQrButton.setOnClickListener {
+        currentType?.let { type ->
+            authorizeAdministrativeAction(AuthorizationRequest.EditProviders) { startQrServer(type) }
+        }
+    }
 
     fun closeIptvForm() {
         editingProviderId = null
@@ -1111,10 +1121,12 @@ internal fun MainActivity.showProviderSettings() {
             // The checkbox is not clickable/focusable itself - clicking the row is what
             // toggles it, which is the only way a D-pad can reach it at all.
             row.setOnClickListener {
-                val checked = !enabledBox.isChecked
-                enabledBox.isChecked = checked
-                IptvProviderStore.setEnabled(prefs, cfg.id, checked)
-                applyProviderToggle(checked) { it.sourceProviderId == cfg.id }
+                authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                    val checked = !enabledBox.isChecked
+                    enabledBox.isChecked = checked
+                    IptvProviderStore.setEnabled(prefs, cfg.id, checked)
+                    applyProviderToggle(checked) { it.sourceProviderId == cfg.id }
+                }
             }
             // Per-content-type toggles: TV / Movies / Series, one checkbox each. Persist
             // before reloading - the reload must see the new flags, and a stale cache
@@ -1122,8 +1134,13 @@ internal fun MainActivity.showProviderSettings() {
             fun bindContentBox(box: CheckBox, checked: Boolean, write: (Boolean) -> Unit) {
                 box.isChecked = checked
                 box.setOnClickListener {
-                    write(box.isChecked)
-                    if (hasProviderConfigured()) scope.launch { loadAllConfiguredProviders(forceRefresh = true) }
+                    val requested = box.isChecked
+                    box.isChecked = checked
+                    authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                        box.isChecked = requested
+                        write(requested)
+                        if (hasProviderConfigured()) scope.launch { loadAllConfiguredProviders(forceRefresh = true) }
+                    }
                 }
             }
             bindContentBox(row.findViewById(R.id.rowTvBox), cfg.liveEnabled) { on -> IptvProviderStore.setContentFlags(prefs, cfg.id, live = on) }
@@ -1154,9 +1171,11 @@ internal fun MainActivity.showProviderSettings() {
                 alpha = if (isEnabled) 1f else 0.35f
                 setOnClickListener {
                     if (index > 0) {
-                        IptvProviderStore.move(prefs, cfg.id, -1)
-                        renderIptvProviderList()
-                        loadAllConfiguredProviders(forceRefresh = true)
+                        authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                            IptvProviderStore.move(prefs, cfg.id, -1)
+                            renderIptvProviderList()
+                            loadAllConfiguredProviders(forceRefresh = true)
+                        }
                     }
                 }
             }
@@ -1165,9 +1184,11 @@ internal fun MainActivity.showProviderSettings() {
                 alpha = if (isEnabled) 1f else 0.35f
                 setOnClickListener {
                     if (index < list.lastIndex) {
-                        IptvProviderStore.move(prefs, cfg.id, 1)
-                        renderIptvProviderList()
-                        loadAllConfiguredProviders(forceRefresh = true)
+                        authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                            IptvProviderStore.move(prefs, cfg.id, 1)
+                            renderIptvProviderList()
+                            loadAllConfiguredProviders(forceRefresh = true)
+                        }
                     }
                 }
             }
@@ -1177,19 +1198,21 @@ internal fun MainActivity.showProviderSettings() {
             }
             row.findViewById<View>(R.id.rowEditButton).setOnClickListener { openIptvForm(cfg) }
             row.findViewById<View>(R.id.rowRemoveButton).setOnClickListener {
-                AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.sett_remove_provider_confirm, cfg.name))
-                    .setMessage(getString(R.string.sett_remove_provider_message))
-                    .setPositiveButton(getString(R.string.remove)) { _, _ ->
-                        IptvProviderStore.remove(prefs, cfg.id)
-                        renderIptvProviderList()
-                        // The removed row's own Remove button was holding focus and is
-                        // gone now - see focusWhenReady.
-                        focusWhenReady(addIptvProviderButton)
-                        loadAllConfiguredProviders(forceRefresh = true)
-                    }
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .show()
+                authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                    AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.sett_remove_provider_confirm, cfg.name))
+                        .setMessage(getString(R.string.sett_remove_provider_message))
+                        .setPositiveButton(getString(R.string.remove)) { _, _ ->
+                            IptvProviderStore.remove(prefs, cfg.id)
+                            renderIptvProviderList()
+                            // The removed row's own Remove button was holding focus and is
+                            // gone now - see focusWhenReady.
+                            focusWhenReady(addIptvProviderButton)
+                            loadAllConfiguredProviders(forceRefresh = true)
+                        }
+                        .setNegativeButton(getString(R.string.cancel), null)
+                        .show()
+                }
             }
             iptvProviderListContainer.addView(row)
         }
@@ -1201,19 +1224,26 @@ internal fun MainActivity.showProviderSettings() {
             val enabledBox = row.findViewById<CheckBox>(R.id.rowEnabled)
             enabledBox.isChecked = server.enabled
             row.setOnClickListener {
-                val checked = !enabledBox.isChecked
-                enabledBox.isChecked = checked
-                MediaServerStore.setEnabled(prefs, server.id, checked)
-                // Matched through mediaServerOwner rather than on sourceProviderId directly, so
-                // items from a cache written before media servers became a list (no source id
-                // on them) are dropped too instead of lingering until the next refresh.
-                applyProviderToggle(checked) { mediaServerOwner(it, servers)?.id == server.id }
+                authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                    val checked = !enabledBox.isChecked
+                    enabledBox.isChecked = checked
+                    MediaServerStore.setEnabled(prefs, server.id, checked)
+                    // Matched through mediaServerOwner rather than on sourceProviderId directly, so
+                    // items from a cache written before media servers became a list (no source id
+                    // on them) are dropped too instead of lingering until the next refresh.
+                    applyProviderToggle(checked) { mediaServerOwner(it, servers)?.id == server.id }
+                }
             }
             fun bindServerBox(box: CheckBox, checked: Boolean, write: (Boolean) -> Unit) {
                 box.isChecked = checked
                 box.setOnClickListener {
-                    write(box.isChecked)
-                    if (hasProviderConfigured()) scope.launch { loadAllConfiguredProviders(forceRefresh = true) }
+                    val requested = box.isChecked
+                    box.isChecked = checked
+                    authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                        box.isChecked = requested
+                        write(requested)
+                        if (hasProviderConfigured()) scope.launch { loadAllConfiguredProviders(forceRefresh = true) }
+                    }
                 }
             }
             val tvBox = row.findViewById<CheckBox>(R.id.rowTvBox)
@@ -1249,31 +1279,33 @@ internal fun MainActivity.showProviderSettings() {
                 if (server.isPlex) openPlexEditForm(server) else openJellyfinEditForm(server)
             }
             row.findViewById<View>(R.id.rowRemoveButton).setOnClickListener {
-                AlertDialog.Builder(this)
-                    .setTitle(getString(R.string.sett_remove_provider_confirm, server.name))
-                    .setMessage(
-                        getString(
-                            if (server.isPlex) R.string.sett_remove_plex_message
-                            else R.string.sett_remove_jellyfin_message
+                authorizeAdministrativeAction(AuthorizationRequest.EditProviders) {
+                    AlertDialog.Builder(this)
+                        .setTitle(getString(R.string.sett_remove_provider_confirm, server.name))
+                        .setMessage(
+                            getString(
+                                if (server.isPlex) R.string.sett_remove_plex_message
+                                else R.string.sett_remove_jellyfin_message
+                            )
                         )
-                    )
-                    .setPositiveButton(getString(R.string.remove)) { _, _ ->
-                        // plex_client_id deliberately survives a Plex removal: it identifies
-                        // this install to plex.tv, and minting a new one on every remove/re-add
-                        // would litter the user's Plex device list with a fresh entry each time.
-                        MediaServerStore.remove(prefs, server.id)
-                        jellyfinClients.remove(server.id)
-                        plexClients.remove(server.id)
-                        jellyfinResumeByServer.remove(server.id)
-                        jellyfinNextUpByServer.remove(server.id)
-                        plexResumeByServer.remove(server.id)
-                        plexNextUpByServer.remove(server.id)
-                        renderIptvProviderList()
-                        focusWhenReady(addIptvProviderButton)
-                        loadAllConfiguredProviders(forceRefresh = true)
-                    }
-                    .setNegativeButton(getString(R.string.cancel), null)
-                    .show()
+                        .setPositiveButton(getString(R.string.remove)) { _, _ ->
+                            // plex_client_id deliberately survives a Plex removal: it identifies
+                            // this install to plex.tv, and minting a new one on every remove/re-add
+                            // would litter the user's Plex device list with a fresh entry each time.
+                            MediaServerStore.remove(prefs, server.id)
+                            jellyfinClients.remove(server.id)
+                            plexClients.remove(server.id)
+                            jellyfinResumeByServer.remove(server.id)
+                            jellyfinNextUpByServer.remove(server.id)
+                            plexResumeByServer.remove(server.id)
+                            plexNextUpByServer.remove(server.id)
+                            renderIptvProviderList()
+                            focusWhenReady(addIptvProviderButton)
+                            loadAllConfiguredProviders(forceRefresh = true)
+                        }
+                        .setNegativeButton(getString(R.string.cancel), null)
+                        .show()
+                }
             }
             iptvProviderListContainer.addView(row)
         }
@@ -1344,46 +1376,50 @@ internal fun MainActivity.showProviderSettings() {
         }
     }
     dialogView.findViewById<View>(R.id.settingsImportBackup).setOnClickListener {
-        val intent = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(android.content.Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-        }
-        try {
-            startActivityForResult(intent, MainActivity.REQUEST_IMPORT_BACKUP)
-            pendingBackupManager = backupManager
-        } catch (e: android.content.ActivityNotFoundException) {
-            val plainFile = localBackupFile()
-            val encryptedFile = java.io.File(plainFile.parentFile, "parafusotv_backup.ptvbackup")
-            val file = when { encryptedFile.exists() -> encryptedFile; plainFile.exists() -> plainFile; else -> null }
-            if (file == null) {
-                Toast.makeText(this@showProviderSettings, getString(R.string.sett_no_backup_file, plainFile.absolutePath), Toast.LENGTH_LONG).show()
-            } else {
-                scope.launch {
-                    var result = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file)) }
-                    if (result.errorMessage == "PASSWORD_REQUIRED" || result.errorMessage == "INVALID_PASSWORD") {
-                        withContext(Dispatchers.Main) {
-                            askBackupPassword(getString(R.string.sett_backup_unlock_title), allowBlank = false) { password ->
-                                scope.launch {
-                                    var retry = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file), password = password) }
-                                    if (retry.conflicts > 0 && retry.providersImported == 0 && retry.epgSourcesImported == 0) {
-                                        retry = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file), confirmed = true, password = password) }
+        authorizeAdministrativeAction(
+            AuthorizationRequest.RestoreBackup(administrativePinStore.hasPin())
+        ) {
+            val intent = android.content.Intent(android.content.Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(android.content.Intent.CATEGORY_OPENABLE)
+                type = "*/*"
+            }
+            try {
+                startActivityForResult(intent, MainActivity.REQUEST_IMPORT_BACKUP)
+                pendingBackupManager = backupManager
+            } catch (e: android.content.ActivityNotFoundException) {
+                val plainFile = localBackupFile()
+                val encryptedFile = java.io.File(plainFile.parentFile, "parafusotv_backup.ptvbackup")
+                val file = when { encryptedFile.exists() -> encryptedFile; plainFile.exists() -> plainFile; else -> null }
+                if (file == null) {
+                    Toast.makeText(this@showProviderSettings, getString(R.string.sett_no_backup_file, plainFile.absolutePath), Toast.LENGTH_LONG).show()
+                } else {
+                    scope.launch {
+                        var result = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file)) }
+                        if (result.errorMessage == "PASSWORD_REQUIRED" || result.errorMessage == "INVALID_PASSWORD") {
+                            withContext(Dispatchers.Main) {
+                                askBackupPassword(getString(R.string.sett_backup_unlock_title), allowBlank = false) { password ->
+                                    scope.launch {
+                                        var retry = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file), password = password) }
+                                        if (retry.conflicts > 0 && retry.providersImported == 0 && retry.epgSourcesImported == 0) {
+                                            retry = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file), confirmed = true, password = password) }
+                                        }
+                                        Toast.makeText(this@showProviderSettings,
+                                            retry.errorMessage?.let { getString(R.string.sett_import_failed_detail, it) }
+                                                ?: getString(R.string.sett_imported_summary, retry.providersImported, retry.epgSourcesImported, retry.customGroupsImported),
+                                            Toast.LENGTH_LONG).show()
                                     }
-                                    Toast.makeText(this@showProviderSettings,
-                                        retry.errorMessage?.let { getString(R.string.sett_import_failed_detail, it) }
-                                            ?: getString(R.string.sett_imported_summary, retry.providersImported, retry.epgSourcesImported, retry.customGroupsImported),
-                                        Toast.LENGTH_LONG).show()
                                 }
                             }
+                            return@launch
                         }
-                        return@launch
+                        if (result.conflicts > 0 && result.providersImported == 0 && result.epgSourcesImported == 0) {
+                            result = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file), confirmed = true) }
+                        }
+                        Toast.makeText(this@showProviderSettings,
+                            result.errorMessage?.let { getString(R.string.sett_import_failed_detail, it) }
+                                ?: getString(R.string.sett_imported_summary, result.providersImported, result.epgSourcesImported, result.customGroupsImported),
+                            Toast.LENGTH_LONG).show()
                     }
-                    if (result.conflicts > 0 && result.providersImported == 0 && result.epgSourcesImported == 0) {
-                        result = withContext(Dispatchers.IO) { backupManager.importFrom(Uri.fromFile(file), confirmed = true) }
-                    }
-                    Toast.makeText(this@showProviderSettings,
-                        result.errorMessage?.let { getString(R.string.sett_import_failed_detail, it) }
-                            ?: getString(R.string.sett_imported_summary, result.providersImported, result.epgSourcesImported, result.customGroupsImported),
-                        Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -1476,11 +1512,11 @@ internal fun MainActivity.showProviderSettings() {
         if (allChannels.isNotEmpty()) scope.launch { classifyAndShow() }
     }
     hideAdultListener = CompoundButton.OnCheckedChangeListener { _, checked ->
-        // Turning filtering ON is always allowed. Turning it OFF needs the PIN, if one
-        // is set - otherwise the toggle is just a preference with nothing locking it.
-        if (!checked && hasParentalPin()) {
+        // Turning filtering ON remains immediate. Turning it OFF is an administrative
+        // parental-control action, including on a device that must first establish its PIN.
+        if (!checked) {
             applyHideAdult(true)
-            promptForPin(getString(R.string.sett_enter_pin_show_adult)) { applyHideAdult(false) }
+            authorizeAdministrativeAction(AuthorizationRequest.EditParentalControls) { applyHideAdult(false) }
         } else {
             applyHideAdult(checked)
         }
@@ -1803,24 +1839,25 @@ internal fun MainActivity.showProviderSettings() {
             activeSettingsOverlay?.dismiss()
             return@setOnClickListener
         }
-        if (currentType == null) {
-            Toast.makeText(this, getString(R.string.sett_choose_provider_type_first), Toast.LENGTH_SHORT).show(); return@setOnClickListener
-        }
-        if ((currentType == "m3u" || currentType == "xtream") && lastTestedFingerprint != connectionFingerprint()) {
-            Toast.makeText(this, getString(R.string.parafuso_test_before_save), Toast.LENGTH_SHORT).show()
-            testConnectionButton.requestFocus()
-            return@setOnClickListener
-        }
-        val name = providerNameInput.text.toString().trim()
-        val id = editingProviderId ?: IptvProviderStore.newId()
-        // The form has no per-type controls; preserve the provider's existing content
-        // flags so saving the form never silently resets a movies/series split.
-        val prevConfig = editingProviderId?.let { pid -> IptvProviderStore.load(prefs).firstOrNull { it.id == pid } }
-        when (currentType) {
+        authorizeAdministrativeAction(AuthorizationRequest.EditProviders) saveProvider@{
+            if (currentType == null) {
+                Toast.makeText(this, getString(R.string.sett_choose_provider_type_first), Toast.LENGTH_SHORT).show(); return@saveProvider
+            }
+            if ((currentType == "m3u" || currentType == "xtream") && lastTestedFingerprint != connectionFingerprint()) {
+                Toast.makeText(this, getString(R.string.parafuso_test_before_save), Toast.LENGTH_SHORT).show()
+                testConnectionButton.requestFocus()
+                return@saveProvider
+            }
+            val name = providerNameInput.text.toString().trim()
+            val id = editingProviderId ?: IptvProviderStore.newId()
+            // The form has no per-type controls; preserve the provider's existing content
+            // flags so saving the form never silently resets a movies/series split.
+            val prevConfig = editingProviderId?.let { pid -> IptvProviderStore.load(prefs).firstOrNull { it.id == pid } }
+            when (currentType) {
             "m3u" -> {
                 val url = m3uUrl.text.toString().trim().let { if (it.isBlank()) it else normalizeServerUrl(it) }
                 if (url.isBlank()) {
-                    Toast.makeText(this, getString(R.string.sett_enter_m3u_url), Toast.LENGTH_SHORT).show(); return@setOnClickListener
+                    Toast.makeText(this, getString(R.string.sett_enter_m3u_url), Toast.LENGTH_SHORT).show(); return@saveProvider
                 }
                 IptvProviderStore.upsert(prefs, IptvProviderConfig(
                     id = id, type = "m3u", name = name.ifBlank { "M3U/M3U8 Playlist" }, enabled = true,
@@ -1831,7 +1868,7 @@ internal fun MainActivity.showProviderSettings() {
             }
             "xtream" -> {
                 val url = xtreamUrl.text.toString().trim().let { if (it.isBlank()) it else normalizeServerUrl(it) }
-                if (url.isBlank()) { Toast.makeText(this, getString(R.string.sett_enter_server_url), Toast.LENGTH_SHORT).show(); return@setOnClickListener }
+                if (url.isBlank()) { Toast.makeText(this, getString(R.string.sett_enter_server_url), Toast.LENGTH_SHORT).show(); return@saveProvider }
                 IptvProviderStore.upsert(prefs, IptvProviderConfig(
                     id = id, type = "xtream", name = name.ifBlank { "Xtream" }, enabled = true,
                     liveEnabled = prevConfig?.liveEnabled ?: true,
@@ -1841,7 +1878,7 @@ internal fun MainActivity.showProviderSettings() {
             }
             "stalker" -> {
                 val url = stalkerUrl.text.toString().trim().let { if (it.isBlank()) it else normalizeServerUrl(it) }
-                if (url.isBlank()) { Toast.makeText(this, getString(R.string.sett_enter_server_url), Toast.LENGTH_SHORT).show(); return@setOnClickListener }
+                if (url.isBlank()) { Toast.makeText(this, getString(R.string.sett_enter_server_url), Toast.LENGTH_SHORT).show(); return@saveProvider }
                 IptvProviderStore.upsert(prefs, IptvProviderConfig(
                     id = id, type = "stalker", name = name.ifBlank { "Stalker Portal" }, enabled = true,
                     liveEnabled = prevConfig?.liveEnabled ?: true,
@@ -1853,7 +1890,7 @@ internal fun MainActivity.showProviderSettings() {
                 // Media servers have their own list (MediaServerStore), not IptvProviderStore -
                 // same "any number of entries" shape, different contents.
                 val url = jellyfinUrl.text.toString().trim().let { if (it.isBlank()) it else normalizeServerUrl(it, defaultScheme = "https") }
-                if (url.isBlank()) { Toast.makeText(this, getString(R.string.sett_enter_server_url), Toast.LENGTH_SHORT).show(); return@setOnClickListener }
+                if (url.isBlank()) { Toast.makeText(this, getString(R.string.sett_enter_server_url), Toast.LENGTH_SHORT).show(); return@saveProvider }
                 saveJellyfinServer(
                     existingId = editingMediaServerId,
                     url = url,
@@ -1869,20 +1906,21 @@ internal fun MainActivity.showProviderSettings() {
                 // yet would silently create a half-configured entry, so say so instead.
                 if (!hasPlexConfigured()) {
                     Toast.makeText(this, getString(R.string.sign_in_with_plex), Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
+                    return@saveProvider
                 }
             }
         }
         
-        closeIptvForm()
-        renderIptvProviderList()
-        // The tab bar and search are gated on there being an enabled provider, and saving
-        // the first one is what changes that answer. Nothing recomputed it until Settings
-        // was dismissed, so the toolbar behind the dialog kept showing the no-provider
-        // chrome (Settings + Refresh alone) after a successful save.
-        updateTopChromeVisibility()
-        Toast.makeText(this, getString(R.string.sett_provider_saved_loading), Toast.LENGTH_SHORT).show()
-        loadAllConfiguredProviders(forceRefresh = true)
+            closeIptvForm()
+            renderIptvProviderList()
+            // The tab bar and search are gated on there being an enabled provider, and saving
+            // the first one is what changes that answer. Nothing recomputed it until Settings
+            // was dismissed, so the toolbar behind the dialog kept showing the no-provider
+            // chrome (Settings + Refresh alone) after a successful save.
+            updateTopChromeVisibility()
+            Toast.makeText(this, getString(R.string.sett_provider_saved_loading), Toast.LENGTH_SHORT).show()
+            loadAllConfiguredProviders(forceRefresh = true)
+        }
     }
 }
 
@@ -1931,9 +1969,30 @@ internal fun MainActivity.promptForPin(title: String, onCorrect: () -> Unit) {
 
 /** Sets (or changes) the 4-digit PIN - entered twice so a typo doesn't lock the user out. */
 internal fun MainActivity.showSetPinDialog(label: TextView) {
-    showSetAdministrativePinDialog {
-        label.text = getString(R.string.sett_change_parental_pin)
-        Toast.makeText(this, getString(R.string.sett_parental_pin_set), Toast.LENGTH_SHORT).show()
+    authorizeAdministrativeAction(
+        AuthorizationRequest.ChangeAdministrativePin(administrativePinStore.hasPin())
+    ) {
+        showSetAdministrativePinDialog {
+            label.text = getString(R.string.sett_change_parental_pin)
+            Toast.makeText(this, getString(R.string.sett_parental_pin_set), Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+/**
+ * UI bridge for administrative operations. The policy owns the requirement decision; this
+ * bridge only presents the existing dialogs and invokes [onAuthorized] after success.
+ */
+internal fun MainActivity.authorizeAdministrativeAction(
+    request: AuthorizationRequest,
+    onAuthorized: () -> Unit
+) {
+    when (AuthorizationPolicy.requirementFor(request, administrativePinStore.hasPin())) {
+        CredentialRequirement.NONE -> onAuthorized()
+        CredentialRequirement.ADMIN_PIN -> promptForPin("PIN administrativo", onAuthorized)
+        CredentialRequirement.ADMIN_PIN_SETUP -> showSetAdministrativePinDialog(onAuthorized)
+        CredentialRequirement.DESTINATION_PROFILE_PIN,
+        CredentialRequirement.ADMIN_AND_DESTINATION_PROFILE_PIN -> Unit
     }
 }
 
