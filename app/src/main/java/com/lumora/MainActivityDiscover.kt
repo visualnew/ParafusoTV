@@ -14,7 +14,9 @@ import com.lumora.model.ContentShelf
 import com.lumora.model.MediaType
 import com.lumora.plugin.js.PluginScript
 import com.lumora.parser.XtreamClient
+import com.lumora.util.DeviceFormFactor
 import com.lumora.util.cleanVodTitle
+import com.lumora.util.newestByDate
 import com.lumora.util.versionGroupContaining
 import com.lumora.util.isAdultCategory
 import kotlinx.coroutines.*
@@ -1172,10 +1174,18 @@ internal fun MainActivity.seriesPosterLeadShelfItems(favourites: List<Channel>):
     }
 }
 
-internal fun MainActivity.buildHomeShelves(): List<ContentShelf> {
-    val shelves = mutableListOf<ContentShelf>()
-    val hidden = getHiddenHomeShelves()
+/**
+ * Routes Home composition by the centralized presentation form factor. The legacy mobile
+ * composition remains isolated below so existing phone behavior, including its extra shelves,
+ * is unchanged while TV/Fire TV gets its content-led landing screen.
+ */
+internal fun MainActivity.buildHomeShelves(): List<ContentShelf> = when (deviceFormFactor) {
+    DeviceFormFactor.TV -> buildTvHomeShelves()
+    DeviceFormFactor.MOBILE -> buildMobileHomeShelves()
+}
 
+/** Shared Continue Watching source for both legacy mobile and TV Home compositions. */
+private fun MainActivity.buildHomeContinueWatchingItems(): List<Channel> {
     // The media servers' own resume lists lead Continue Watching: they know about playback
     // from every other client, which a purely local position store never can. Local
     // entries follow, minus anything a server already covered (same item, one card).
@@ -1188,11 +1198,19 @@ internal fun MainActivity.buildHomeShelves(): List<ContentShelf> {
     val upNext = buildUpNextSeriesTiles().filterNot(::isAdultHomeItem)
     // Labelled and postered from the parent series - see continueWatchingTiles. Applied after
     // the dedupe so the catalogue pass runs over the final row, not the raw merge.
-    val continueItems = continueWatchingTiles(
+    return continueWatchingTiles(
         (serverContinue + localContinue + upNext)
             .distinctBy { it.id.ifBlank { it.url } }
             .filterNot(::isAdultHomeItem)
     )
+}
+
+/** Existing Home composition retained exactly for mobile. */
+private fun MainActivity.buildMobileHomeShelves(): List<ContentShelf> {
+    val shelves = mutableListOf<ContentShelf>()
+    val hidden = getHiddenHomeShelves()
+
+    val continueItems = buildHomeContinueWatchingItems()
     if (continueItems.isNotEmpty()) shelves.add(ContentShelf(getString(R.string.category_continue_watching), continueItems))
 
     // "Next Up" is the row that makes a series library usable - the next unwatched episode
@@ -1221,6 +1239,56 @@ internal fun MainActivity.buildHomeShelves(): List<ContentShelf> {
     val favIds = FavoritesStore.getFavoriteSeriesIds(this)
     val favItems = (seriesList + filmList).filter { it.id in favIds }.filterNot(::isAdultHomeItem)
     if (favItems.isNotEmpty()) shelves.add(ContentShelf(getString(R.string.category_favourites), favItems))
+
+    return shelves.filter { it.title !in hidden }
+}
+
+/**
+ * TV/Fire TV Home composition. It consumes the same loaded catalog and stores as the legacy
+ * Home, but presents the approved five shelves in their fixed product order. Empty shelves are
+ * omitted; this method performs no loading, persistence, or player work.
+ */
+private fun MainActivity.buildTvHomeShelves(): List<ContentShelf> {
+    val shelves = mutableListOf<ContentShelf>()
+    val hidden = getHiddenHomeShelves()
+
+    val continueItems = buildHomeContinueWatchingItems()
+    if (continueItems.isNotEmpty()) {
+        shelves.add(ContentShelf(getString(R.string.category_continue_watching), continueItems))
+    }
+
+    val liveItems = liveChannels.filterNot(::isAdultHomeItem)
+    if (liveItems.isNotEmpty()) {
+        shelves.add(ContentShelf(getString(R.string.tab_live_tv), liveItems))
+    }
+
+    val favouriteChannelIds = FavoritesStore.getFavoriteChannelIds(this)
+    val favouriteVodIds = FavoritesStore.getFavoriteSeriesIds(this)
+    // A favourite can occur in more than one derived catalog list. Keep one logical tile while
+    // preserving the existing source order: live channels first, then series, then films.
+    val favouriteItems = (
+        liveChannels.filter { it.id in favouriteChannelIds } +
+            seriesList.filter { it.id in favouriteVodIds } +
+            filmList.filter { it.id in favouriteVodIds }
+        )
+        .filterNot(::isAdultHomeItem)
+        .distinctBy { it.id.ifBlank { it.url } }
+    if (favouriteItems.isNotEmpty()) {
+        shelves.add(ContentShelf(getString(R.string.category_favourites), favouriteItems))
+    }
+
+    // The catalog already has a stable newest-first helper for its VOD shelves. Its default
+    // limit of 30 keeps this Home surface responsive without a new query or recommendation
+    // system, and filtering happens before limiting so adult-only entries never consume slots.
+    val filmItems = newestByDate(filmList.filterNot(::isAdultHomeItem))
+    if (filmItems.isNotEmpty()) {
+        shelves.add(ContentShelf(getString(R.string.films_tab), filmItems))
+    }
+
+    val seriesItems = newestByDate(seriesList.filterNot(::isAdultHomeItem))
+    if (seriesItems.isNotEmpty()) {
+        shelves.add(ContentShelf(getString(R.string.series_tab), seriesItems))
+    }
 
     return shelves.filter { it.title !in hidden }
 }

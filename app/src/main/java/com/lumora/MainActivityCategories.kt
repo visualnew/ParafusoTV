@@ -1603,6 +1603,9 @@ internal fun MainActivity.applyStatus() {
 internal fun MainActivity.setupDashboardNavigation() {
     presentationShell.installLegacyChrome()
     if (!isTv) return
+    // The compact Home tab is hidden by the TV chrome. Keep the existing shelf adapter's
+    // top-row fallback inside the visible TV navigation instead of targeting that hidden tab.
+    homeShelfAdapter.topRowFocusUpTargetId = R.id.navRailHome
     installLegacyTvDashboardNavigationActions()
 }
 

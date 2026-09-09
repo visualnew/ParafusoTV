@@ -655,9 +655,8 @@ class MainActivity : AppCompatActivity() {
     internal var activeTab: Int
         get() = appState.navigation.state.activeTab
         set(value) { appState.navigation.setActiveTab(value) }
-    // Live TV is the landing screen: this is a TV app first, and Home's shelves are only
-    // meaningful once there's watch history to fill them. The first render after a catalog
-    // load routes on this flag (see the tail of classifyAndShow).
+    // Mobile retains the legacy Live TV landing state. TV/Fire TV selects Home during
+    // initialization, before the first catalog render routes on this flag.
     internal var showingHome: Boolean
         get() = appState.navigation.state.showingHome
         set(value) { appState.navigation.setShowingHome(value) }
@@ -1180,6 +1179,10 @@ class MainActivity : AppCompatActivity() {
 
         setupChannelList()
         setupTabs()
+        // TV/Fire TV opens on the content-led Home once the catalog becomes available.
+        // This is set before the rail installs so its initial selection agrees with the
+        // pending destination. Mobile intentionally keeps the legacy Live-TV landing state.
+        if (deviceFormFactor == DeviceFormFactor.TV) showingHome = true
         setupDashboardNavigation()
         setupParafusoProfiles()
         setupPlayerControls()
