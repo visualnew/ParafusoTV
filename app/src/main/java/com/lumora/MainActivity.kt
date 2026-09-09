@@ -76,6 +76,7 @@ import com.lumora.data.update.AppUpdateChecker
 import com.lumora.data.update.AppUpdateInstaller
 import com.lumora.player.playback.AvOffsetManager
 import com.lumora.state.AppState
+import com.lumora.state.ProfileSession
 import kotlinx.coroutines.*
 
 internal const val PREF_HIDE_NON_ENGLISH = "hide_non_english_vod"
@@ -341,6 +342,10 @@ class MainActivity : AppCompatActivity() {
      *  can do - sibling files (MainActivityPlayer) go through this instead. */
     internal val isCastManagerReady: Boolean get() = ::castManager.isInitialized
     internal lateinit var prefs: SharedPreferences
+    /** Accesses the active profile without changing the existing stores or their persistence. */
+    internal val profileSession by lazy {
+        ProfileSession(ParafusoProfileStore(this), ParafusoParentalStore(this))
+    }
 
     /** "system" or an ISO 639-1 code — the single source of truth for the whole app's
      *  language. Read wherever a context without an Activity to ask is needed (TMDB tag). */
@@ -1216,8 +1221,8 @@ class MainActivity : AppCompatActivity() {
     /** First-run/local profile chooser. The last selected profile is restored automatically. */
     private fun setupParafusoProfiles() {
         val store = ParafusoProfileStore(this)
-        val profiles = store.ensureDefault()
-        if (store.activeId() != -1) return
+        val profiles = profileSession.ensureDefault()
+        if (profileSession.activeId() != -1) return
         binding.root.postDelayed({ showParafusoProfileChooser(store, profiles) }, 1750L)
     }
 
@@ -1236,7 +1241,7 @@ class MainActivity : AppCompatActivity() {
         root.addView(sub)
         val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER }
         initial.forEach { profile ->
-            row.addView(profileCard(profile) { store.setActive(profile.id); dialog.dismiss() })
+            row.addView(profileCard(profile) { profileSession.activate(profile.id); dialog.dismiss() })
         }
         if (initial.size < 4) {
             val add = TextView(this).apply {
@@ -1311,7 +1316,7 @@ class MainActivity : AppCompatActivity() {
     internal fun showParafusoParentalSettings() {
         val profileStore = ParafusoProfileStore(this)
         val profiles = profileStore.ensureDefault().toMutableList()
-        var selected = profiles.indexOfFirst { it.id == profileStore.activeId() }.takeIf { it >= 0 } ?: 0
+        var selected = profiles.indexOfFirst { it.id == profileSession.activeId() }.takeIf { it >= 0 } ?: 0
         val parental = ParafusoParentalStore(this)
 
         fun openEditor() {
@@ -1345,7 +1350,7 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton("Salvar") { _, _ ->
                     val updated = profile.copy(child = child.isChecked); profiles[selected] = updated; profileStore.save(profiles)
                     if (updated.child && !parental.hasPin(updated.id)) showNewProfilePinDialog(updated, parental)
-                    if (updated.id == profileStore.activeId() && allChannels.isNotEmpty()) scope.launch { classifyAndShow() }
+                    if (updated.id == profileSession.activeId() && allChannels.isNotEmpty()) scope.launch { classifyAndShow() }
                     Toast.makeText(this, "Controle parental atualizado.", Toast.LENGTH_SHORT).show()
                 }.setNegativeButton("Cancelar", null).show()
         }

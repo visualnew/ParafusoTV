@@ -510,9 +510,7 @@ internal fun MainActivity.collapseCategorySidebar() {
  *  explicit tab so it can list Series/Films categories while Live is what's playing. */
 internal suspend fun MainActivity.buildCategoriesForActiveTab(tab: Int = activeTab): List<CategoryFilter> {
     val startedAt = System.currentTimeMillis()
-    val profileId = ParafusoProfileScope.activeId(this)
-    val profile = ParafusoProfileStore(this).profiles().firstOrNull { it.id == profileId }
-    val blockedCategories = if (profile?.child == true) ParafusoParentalStore(this).blockedCategories(profileId) else emptySet()
+    val blockedCategories = profileSession.blockedCategories()
     val list = fullListForTab(tab).filter { item ->
         if (blockedCategories.isEmpty()) true
         else item.categoryName.isNullOrBlank() || item.categoryName !in blockedCategories
