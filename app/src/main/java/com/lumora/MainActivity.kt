@@ -64,7 +64,8 @@ import com.lumora.torrent.TorrentForegroundService
 import com.lumora.anime.AnimeCatalogClient
 import com.lumora.player.PlayerManager
 import com.lumora.player.PlayerTrackController
-import com.lumora.util.isTvDevice
+import com.lumora.util.DeviceFormFactor
+import com.lumora.util.resolveDeviceFormFactor
 import com.lumora.util.groupDuplicateSeries
 import com.lumora.data.local.LumoraDatabase
 import com.lumora.data.sync.EpgSyncWorker
@@ -670,7 +671,11 @@ class MainActivity : AppCompatActivity() {
     internal val catchupChannelAdapter = com.lumora.adapter.CatchupAdapter { row -> onCatchupChannelClick(row) }
     internal val catchupDayAdapter = com.lumora.adapter.CatchupAdapter { row -> onCatchupDayClick(row) }
     internal val catchupProgrammeAdapter = com.lumora.adapter.CatchupAdapter { row -> playCatchup(row) }
-    internal val isTv by lazy { isTvDevice(this) }
+    /** Centralized presentation form factor; orientation remains intentionally out of scope. */
+    internal val deviceFormFactor by lazy { resolveDeviceFormFactor(this) }
+    /** Legacy compatibility bridge for the existing Activity and extension call sites. */
+    internal val isTv: Boolean
+        get() = deviceFormFactor == DeviceFormFactor.TV
     /** Phone portrait auto-hides the category rail (see isSidebarCollapsed): the screen is
      *  too narrow to carry the rail plus a usable content column. Manually re-expanding it
      *  flips this for the current portrait session only - it is deliberately not persisted,
