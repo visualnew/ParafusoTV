@@ -537,9 +537,11 @@ internal fun MainActivity.showProviderSettings() {
             .setTitle(getString(R.string.sett_clear_history_confirm))
             .setMessage(getString(R.string.sett_clear_history_message))
             .setPositiveButton(getString(R.string.search_recents_clear)) { _, _ ->
+                val profileId = ParafusoProfileScope.activeId(this)
                 PlaybackPositionStore.clearAll(this)
                 clearUpNextMemo()
                 RecentlyPlayedStore.clear(this)
+                scope.launch(Dispatchers.IO) { database.watchHistoryDao().deleteForProfile(profileId) }
                 Toast.makeText(this, getString(R.string.sett_history_cleared), Toast.LENGTH_SHORT).show()
                 if (showingHome) selectHome()
             }

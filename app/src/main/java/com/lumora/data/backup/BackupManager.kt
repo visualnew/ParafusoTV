@@ -124,12 +124,18 @@ class BackupManager(private val context: Context) {
         // collapsing them onto one "backup_<channelId>" key. Null on backups written by old
         // builds; restore falls back to a per-entry id.
         val id: String? = null,
+        // Absent from backups written before profile-scoped Room history; those rows belong
+        // to the legacy/default profile when restored.
+        val profileId: Int? = null,
         val channelId: String, val channelName: String,
         val mediaType: String, val positionMs: Long,
         val durationMs: Long, val status: String,
         val lastWatchedAt: Long,
         // Carried so restore doesn't lose firstWatchedAt (old backups only had lastWatchedAt).
-        val firstWatchedAt: Long? = null
+        val firstWatchedAt: Long? = null,
+        // Nullable for Gson compatibility with older backups that did not serialize them.
+        val progressPercent: Float? = null,
+        val watchCount: Int? = null
     )
 
     data class RecordingStorageBackup(
@@ -262,7 +268,7 @@ class BackupManager(private val context: Context) {
         count += FavoritesStore.getFavoriteChannelIds(context).size
         count += db.epgSourceDao().getAll().size
         count += db.customGroupDao().getAll().size
-        count += db.watchHistoryDao().getRecent().size
+        count += db.watchHistoryDao().countAllForBackup()
         count += db.recordingDao().getAll().size
         return count
     }
@@ -273,7 +279,7 @@ class BackupManager(private val context: Context) {
         val customGroups = db.customGroupDao().getAll()
         // getAll, not getRecent: the LIMIT 50 read truncated every backup to the 50 most
         // recent entries and the rest was unrecoverable once the user cleared the app.
-        val watchHistory = db.watchHistoryDao().getAll()
+        val watchHistory = db.watchHistoryDao().getAllForBackup()
         val recordingStorage = db.recordingDao().getStorageConfig()
         val recordings = db.recordingDao().getAll()
 
@@ -308,10 +314,12 @@ class BackupManager(private val context: Context) {
             favoriteSeries = FavoritesStore.getFavoriteSeriesIds(context).toList(),
             favoriteChannels = FavoritesStore.getFavoriteChannelIds(context).toList(),
             watchHistory = watchHistory.map { WatchHistoryBackup(
-                id = it.id, channelId = it.channelId, channelName = it.channelName,
+                id = it.id, profileId = it.profileId,
+                channelId = it.channelId, channelName = it.channelName,
                 mediaType = it.mediaType, positionMs = it.positionMs,
                 durationMs = it.durationMs, status = it.status,
-                lastWatchedAt = it.lastWatchedAt, firstWatchedAt = it.firstWatchedAt
+                lastWatchedAt = it.lastWatchedAt, firstWatchedAt = it.firstWatchedAt,
+                progressPercent = it.progressPercent, watchCount = it.watchCount
             )},
             recordingStorage = recordingStorage?.let { RecordingStorageBackup(
                 maxSimultaneous = it.maxSimultaneous,
@@ -412,9 +420,13 @@ class BackupManager(private val context: Context) {
             db.watchHistoryDao().insert(
                 WatchHistoryEntity(
                     id = h.id ?: "backup_${h.channelId}_${h.lastWatchedAt}",
+                    profileId = h.profileId?.takeIf { it > 0 } ?: 1,
                     channelId = h.channelId, channelName = h.channelName,
                     mediaType = h.mediaType, positionMs = h.positionMs,
-                    durationMs = h.durationMs, status = h.status,
+                    durationMs = h.durationMs,
+                    progressPercent = h.progressPercent ?: 0f,
+                    status = h.status,
+                    watchCount = h.watchCount ?: 1,
                     lastWatchedAt = h.lastWatchedAt,
                     firstWatchedAt = h.firstWatchedAt ?: h.lastWatchedAt
                 )

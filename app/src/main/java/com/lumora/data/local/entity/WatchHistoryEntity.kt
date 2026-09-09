@@ -2,14 +2,19 @@ package com.lumora.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.Index
-import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "watch_history",
-    indices = [Index("channelId"), Index("lastWatchedAt")]
+    primaryKeys = ["profileId", "id"],
+    indices = [
+        Index(value = ["profileId", "lastWatchedAt"]),
+        Index(value = ["profileId", "channelId"])
+    ]
 )
 data class WatchHistoryEntity(
-    @PrimaryKey val id: String,
+    /** Profile 1 owns every row written before the profile-aware schema existed. */
+    val profileId: Int = 1,
+    val id: String,
     val channelId: String,
     val channelName: String,
     val mediaType: String,

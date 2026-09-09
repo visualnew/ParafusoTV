@@ -10,7 +10,7 @@ import com.lumora.data.local.dao.*
 import com.lumora.data.local.entity.*
 
 @Database(
-    version = 4,
+    version = 5,
     exportSchema = true,
     entities = [
         ProviderEntity::class,
@@ -74,6 +74,51 @@ abstract class LumoraDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v5 scopes Room watch history to the active ParafusoTV profile. SQLite cannot alter
+         * a primary key in place, so rebuild only this table and copy every legacy row to
+         * profile 1. The rest of the database is untouched.
+         */
+        internal val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `watch_history_new` (" +
+                        "`profileId` INTEGER NOT NULL, " +
+                        "`id` TEXT NOT NULL, " +
+                        "`channelId` TEXT NOT NULL, " +
+                        "`channelName` TEXT NOT NULL, " +
+                        "`mediaType` TEXT NOT NULL, " +
+                        "`positionMs` INTEGER NOT NULL, " +
+                        "`durationMs` INTEGER NOT NULL, " +
+                        "`progressPercent` REAL NOT NULL, " +
+                        "`status` TEXT NOT NULL, " +
+                        "`watchCount` INTEGER NOT NULL, " +
+                        "`firstWatchedAt` INTEGER NOT NULL, " +
+                        "`lastWatchedAt` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`profileId`, `id`))"
+                )
+                db.execSQL(
+                    "INSERT INTO `watch_history_new` (" +
+                        "`profileId`, `id`, `channelId`, `channelName`, `mediaType`, " +
+                        "`positionMs`, `durationMs`, `progressPercent`, `status`, " +
+                        "`watchCount`, `firstWatchedAt`, `lastWatchedAt`) " +
+                        "SELECT 1, `id`, `channelId`, `channelName`, `mediaType`, " +
+                        "`positionMs`, `durationMs`, `progressPercent`, `status`, " +
+                        "`watchCount`, `firstWatchedAt`, `lastWatchedAt` FROM `watch_history`"
+                )
+                db.execSQL("DROP TABLE `watch_history`")
+                db.execSQL("ALTER TABLE `watch_history_new` RENAME TO `watch_history`")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_watch_history_profileId_lastWatchedAt` " +
+                        "ON `watch_history` (`profileId`, `lastWatchedAt`)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_watch_history_profileId_channelId` " +
+                        "ON `watch_history` (`profileId`, `channelId`)"
+                )
+            }
+        }
+
         fun getInstance(context: Context): LumoraDatabase {
             return instance ?: synchronized(this) {
                 instance ?: Room.databaseBuilder(
@@ -81,7 +126,7 @@ abstract class LumoraDatabase : RoomDatabase() {
                     LumoraDatabase::class.java,
                     "lumora.db"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                     .also { instance = it }
             }

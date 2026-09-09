@@ -35,6 +35,7 @@ android {
         applicationId = "com.parafusotv"
         minSdk = 25
         targetSdk = 36
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         versionCode = 1
         versionName = "1.0.0"
 
@@ -129,6 +130,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
             // Multiple jlibtorrent per-ABI artifacts carry the same license/notice files.
             excludes += setOf("META-INF/LICENSE*", "META-INF/NOTICE*")
+        }
+    }
+
+    sourceSets {
+        getByName("androidTest") {
+            assets.srcDir("$projectDir/schemas")
         }
     }
 }
@@ -238,6 +245,8 @@ dependencies {
     // Tests
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    androidTestImplementation("androidx.room:room-testing:2.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }
 
 // Passes -Dtest.quickjs.so through to the test JVM. wrapper-android's prebuilt native lib only
