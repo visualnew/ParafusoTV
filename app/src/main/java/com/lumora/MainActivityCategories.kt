@@ -26,6 +26,7 @@ import com.lumora.model.CategoryFilter
 import com.lumora.model.Channel
 import com.lumora.model.ContentShelf
 import com.lumora.model.MediaType
+import com.lumora.presentation.TvDashboardRailController
 import com.lumora.anime.AnimeCatalogClient
 import com.lumora.parser.XtreamClient
 import com.lumora.util.deriveBrandCategories
@@ -1607,6 +1608,7 @@ internal fun MainActivity.setupDashboardNavigation() {
     // top-row fallback inside the visible TV navigation instead of targeting that hidden tab.
     homeShelfAdapter.topRowFocusUpTargetId = R.id.navRailHome
     installLegacyTvDashboardNavigationActions()
+    installTvDashboardRailController()
 }
 
 /** Existing TV chrome only: rail visibility, content offset, and legacy top-tab visibility. */
@@ -1670,6 +1672,51 @@ private fun MainActivity.installLegacyTvDashboardNavigationActions() {
     binding.navRailSettings.setOnClickListener { binding.btnSettings.performClick() }
 
     updateDashboardRailSelection()
+}
+
+/** Installs the TV-only compact rail after its legacy navigation actions are already wired. */
+private fun MainActivity.installTvDashboardRailController() {
+    val controller = TvDashboardRailController(
+        rail = binding.dashboardRail,
+        mainContent = binding.mainContent,
+        logo = binding.dashboardRailLogo,
+        labels = listOf(
+            binding.navRailHomeLabel, binding.navRailLiveLabel, binding.navRailFilmsLabel,
+            binding.navRailSeriesLabel, binding.navRailFavoritesLabel, binding.navRailRecordingsLabel,
+            binding.navRailGuideLabel, binding.navRailSettingsLabel
+        ),
+        items = listOf(
+            binding.navRailHome, binding.navRailLive, binding.navRailFilms, binding.navRailSeries,
+            binding.navRailFavorites, binding.navRailRecordings, binding.navRailGuide, binding.navRailSettings
+        ),
+        collapsedWidth = resources.getDimensionPixelSize(R.dimen.dashboard_rail_collapsed_width),
+        expandedWidth = resources.getDimensionPixelSize(R.dimen.dashboard_rail_width),
+        collapsedLogoSize = resources.getDimensionPixelSize(R.dimen.dashboard_rail_collapsed_logo_size),
+        expandedLogoSize = resources.getDimensionPixelSize(R.dimen.dashboard_rail_logo_size),
+        isHomeVisible = { showingHome && binding.homeContent.visibility == View.VISIBLE },
+        focusFirstHomeContent = { focusFirstHomeCardWhenReady() }
+    )
+    tvDashboardRailController = controller
+    // This optional adapter callback remains unset for every other shelf surface and all
+    // mobile flows. It is the sole explicit DPAD_LEFT route introduced in Phase 4.2A.
+    homeShelfAdapter.onLeftEdge = { focusedCard ->
+        controller.enterFromHome(focusedCard, binding.navRailHome)
+    }
+    controller.install()
+}
+
+/**
+ * Focuses Home's first poster rather than the outer shelf holder, which is not itself
+ * focusable. A catalog refresh may leave the prior card detached, so this is the rail's
+ * safe DPAD_RIGHT fallback.
+ */
+internal fun MainActivity.focusFirstHomeCardWhenReady() {
+    fun attempt(): Boolean {
+        val shelf = binding.homeContent.findViewHolderForAdapterPosition(0)?.itemView ?: return false
+        val posters = shelf.findViewById<RecyclerView>(R.id.shelfItems) ?: return false
+        return posters.findViewHolderForAdapterPosition(0)?.itemView?.requestFocus() == true
+    }
+    binding.homeContent.post { if (!attempt()) binding.homeContent.post { attempt() } }
 }
 
 internal fun MainActivity.updateDashboardRailSelection() {

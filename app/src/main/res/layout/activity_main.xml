@@ -3036,37 +3036,37 @@
 
         <LinearLayout android:id="@+id/navRailHome" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_home" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="@string/tab_home" />
+            <TextView android:id="@+id/navRailHomeLabel" style="@style/DashboardNavLabel" android:text="@string/tab_home" />
         </LinearLayout>
         <LinearLayout android:id="@+id/navRailLive" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_live_tv" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="@string/tab_live_tv" />
+            <TextView android:id="@+id/navRailLiveLabel" style="@style/DashboardNavLabel" android:text="@string/tab_live_tv" />
         </LinearLayout>
         <LinearLayout android:id="@+id/navRailFilms" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_films" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="@string/films_tab" />
+            <TextView android:id="@+id/navRailFilmsLabel" style="@style/DashboardNavLabel" android:text="@string/films_tab" />
         </LinearLayout>
         <LinearLayout android:id="@+id/navRailSeries" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_series" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="@string/series_tab" />
+            <TextView android:id="@+id/navRailSeriesLabel" style="@style/DashboardNavLabel" android:text="@string/series_tab" />
         </LinearLayout>
         <LinearLayout android:id="@+id/navRailFavorites" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_favorite" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="@string/category_favourites" />
+            <TextView android:id="@+id/navRailFavoritesLabel" style="@style/DashboardNavLabel" android:text="@string/category_favourites" />
         </LinearLayout>
         <LinearLayout android:id="@+id/navRailRecordings" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_recording" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="Gravações" />
+            <TextView android:id="@+id/navRailRecordingsLabel" style="@style/DashboardNavLabel" android:text="Gravações" />
         </LinearLayout>
         <LinearLayout android:id="@+id/navRailGuide" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_epg" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="@string/guide" />
+            <TextView android:id="@+id/navRailGuideLabel" style="@style/DashboardNavLabel" android:text="@string/guide" />
         </LinearLayout>
             </LinearLayout>
         </ScrollView>
         <LinearLayout android:id="@+id/navRailSettings" style="@style/DashboardNavItem">
             <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_settings" android:tint="@color/text_secondary" />
-            <TextView style="@style/DashboardNavLabel" android:text="@string/settings" />
+            <TextView android:id="@+id/navRailSettingsLabel" style="@style/DashboardNavLabel" android:text="@string/settings" />
         </LinearLayout>
     </LinearLayout>
 

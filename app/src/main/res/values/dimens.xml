@@ -254,5 +254,8 @@
     <!-- Catch Up columns: channel list stays put while days/programmes fly out beside it. -->
     <dimen name="catchup_channel_column_width">260dp</dimen>
     <dimen name="catchup_day_column_width">150dp</dimen>
+    <dimen name="dashboard_rail_collapsed_width">76dp</dimen>
+    <dimen name="dashboard_rail_collapsed_logo_size">40dp</dimen>
+    <dimen name="dashboard_rail_logo_size">56dp</dimen>
     <dimen name="dashboard_rail_width">218dp</dimen>
 </resources>

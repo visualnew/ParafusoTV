@@ -65,6 +65,7 @@ import com.lumora.anime.AnimeCatalogClient
 import com.lumora.player.PlayerManager
 import com.lumora.player.PlayerTrackController
 import com.lumora.presentation.PresentationShell
+import com.lumora.presentation.TvDashboardRailController
 import com.lumora.presentation.presentationShellFor
 import com.lumora.util.DeviceFormFactor
 import com.lumora.util.resolveDeviceFormFactor
@@ -699,6 +700,9 @@ class MainActivity : AppCompatActivity() {
     /** Legacy compatibility bridge for the existing Activity and extension call sites. */
     internal val isTv: Boolean
         get() = deviceFormFactor == DeviceFormFactor.TV
+    /** TV-only legacy chrome controller. It remains null on mobile and while the player owns
+     *  the screen, so no device-neutral navigation path depends on it. */
+    internal var tvDashboardRailController: TvDashboardRailController? = null
     /** Phone portrait auto-hides the category rail (see isSidebarCollapsed): the screen is
      *  too narrow to carry the rail plus a usable content column. Manually re-expanding it
      *  flips this for the current portrait session only - it is deliberately not persisted,

@@ -47,6 +47,10 @@ class ShelfAdapter(
      *  PosterGridAdapter.topRowFocusUpTargetId. */
     var topRowFocusUpTargetId: Int = View.NO_ID
 
+    /** Optional owner for LEFT from the first card at a shelf's left edge. Unset for every
+     *  legacy surface; the TV Home alone uses it to enter its dashboard rail. */
+    var onLeftEdge: ((View) -> Boolean)? = null
+
     // Shared across every shelf row so scrolling vertically past a shelf and
     // back doesn't re-inflate its poster views from scratch every time.
     private val sharedPosterPool = RecycledViewPool()
@@ -98,6 +102,7 @@ class ShelfAdapter(
                 pinButton.visibility = View.GONE
             }
             posterAdapter.topRowFocusUpTargetId = topRowFocusUpTargetId
+            posterAdapter.onLeftEdge = onLeftEdge
             posterAdapter.isTopShelf = bindingAdapterPosition == 0
             posterAdapter.submitList(shelf.items)
         }
@@ -115,6 +120,7 @@ private class ShelfPosterAdapter(
 ) : ListAdapter<Channel, ShelfPosterAdapter.ViewHolder>(DiffCallback()) {
 
     var topRowFocusUpTargetId: Int = View.NO_ID
+    var onLeftEdge: ((View) -> Boolean)? = null
     var isTopShelf: Boolean = false
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -155,8 +161,7 @@ private class ShelfPosterAdapter(
             }
             itemView.setOnKeyListener { v, keyCode, event ->
                 if (event.action == android.view.KeyEvent.ACTION_DOWN &&
-                    keyCode == android.view.KeyEvent.KEYCODE_DPAD_UP &&
-                    isTopShelf
+                    keyCode == android.view.KeyEvent.KEYCODE_DPAD_UP && isTopShelf
                 ) {
                     val root = v.rootView
                     // Home's search bar sits directly above the shelves when visible -
@@ -166,6 +171,13 @@ private class ShelfPosterAdapter(
                         target = root.findViewById<View>(topRowFocusUpTargetId)
                     }
                     if (target != null && target.requestFocus()) return@setOnKeyListener true
+                }
+                if (event.action == android.view.KeyEvent.ACTION_DOWN &&
+                    keyCode == android.view.KeyEvent.KEYCODE_DPAD_LEFT &&
+                    bindingAdapterPosition == 0 &&
+                    (itemView.parent as? RecyclerView)?.canScrollHorizontally(-1) != true
+                ) {
+                    if (onLeftEdge?.invoke(v) == true) return@setOnKeyListener true
                 }
                 false
             }
