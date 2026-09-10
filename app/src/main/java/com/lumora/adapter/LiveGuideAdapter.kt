@@ -68,6 +68,18 @@ class LiveGuideAdapter(
      * installs this for TV while its category sidebar is hidden. */
     var onLeftEdge: ((View) -> Boolean)? = null
 
+    /** Presentation-only switch used by the mobile Channels/Guide control. */
+    private var showGuide = true
+    var minuteWidthDp: Float = MINUTE_WIDTH_DP
+        private set
+
+    fun setPresentation(showGuide: Boolean, minuteWidthDp: Float) {
+        if (this.showGuide == showGuide && this.minuteWidthDp == minuteWidthDp) return
+        this.showGuide = showGuide
+        this.minuteWidthDp = minuteWidthDp
+        notifyDataSetChanged()
+    }
+
     companion object {
         /** Timeline scale (px per programme minute, in dp). Also used by MainActivity's
          *  buildGuideHeader() so the time ruler's 30-minute slots stay in step with the
@@ -144,6 +156,7 @@ class LiveGuideAdapter(
         private val nameText: TextView = itemView.findViewById(R.id.guideChannelName)
         private val nowText: TextView = itemView.findViewById(R.id.guideChannelNow)
         private val favStar: TextView = itemView.findViewById(R.id.guideChannelFav)
+        private val programContainer: View = itemView.findViewById(R.id.guideProgramContainer)
         val scrollView: HorizontalScrollView = itemView.findViewById(R.id.guideProgramScroll)
         private val programRow: LinearLayout = itemView.findViewById(R.id.guideProgramRow)
         private val density = itemView.resources.displayMetrics.density
@@ -230,6 +243,7 @@ class LiveGuideAdapter(
 
         fun bind(channel: Channel) {
             current = channel
+            applyGuidePresentation()
             // Recycled-row hygiene: a row sliding from an EPG channel to a no-EPG one must
             // not keep the previous channel's now line up through the debounce window, and
             // a bound-but-unfocused row must not show the focused "Now:/Next:" format.
@@ -349,6 +363,12 @@ class LiveGuideAdapter(
         }
 
         private fun renderPrograms(channel: Channel, programs: List<XtreamClient.EpgProgram>?, pending: Boolean = false) {
+            lastPrograms = programs
+            if (!showGuide) {
+                programRow.removeAllViews()
+                updateNowLine()
+                return
+            }
             val blocks: List<RenderBlock> = if (programs.isNullOrEmpty()) {
                 // No EPG data for this channel - a single filler block keeps the row
                 // clickable and visually aligned with rows that do have data. Repeating
@@ -366,7 +386,7 @@ class LiveGuideAdapter(
                     // needing a separate absolute-position/overlay system.
                     val effectiveStart = if (isCurrent) nowSeconds else program.startTimestamp
                     val minutes = ((program.stopTimestamp - effectiveStart) / 60).coerceAtLeast(1)
-                    RenderBlock(program.title, (minutes * MINUTE_WIDTH_DP * density).toInt(), isCurrent, program)
+                    RenderBlock(program.title, (minutes * minuteWidthDp * density).toInt(), isCurrent, program)
                 }
             }
 
@@ -416,8 +436,21 @@ class LiveGuideAdapter(
             // so it tracks the timeline highlight. Runs on both the synchronous bind path
             // and the async loadJob path (callers guard with `current === channel`), which
             // is exactly what keeps a recycled row's line from going stale.
-            lastPrograms = programs
             updateNowLine()
+        }
+
+        /** Makes a phone's Channels mode a full-width, touch-sized list without changing TV. */
+        private fun applyGuidePresentation() {
+            programContainer.visibility = if (showGuide) View.VISIBLE else View.GONE
+            val layout = channelInfo.layoutParams as LinearLayout.LayoutParams
+            val columnWidth = itemView.resources.getDimensionPixelSize(R.dimen.guide_channel_column_width)
+            val targetWidth = if (showGuide) columnWidth else ViewGroup.LayoutParams.MATCH_PARENT
+            val targetMarginEnd = if (showGuide) (10 * density).toInt() else 0
+            if (layout.width != targetWidth || layout.marginEnd != targetMarginEnd) {
+                layout.width = targetWidth
+                layout.marginEnd = targetMarginEnd
+                channelInfo.layoutParams = layout
+            }
         }
 
         /** Fills guideChannelNow from the row's already-fetched EPG. Unfocused rows show

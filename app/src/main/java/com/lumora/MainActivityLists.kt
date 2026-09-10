@@ -220,6 +220,12 @@ internal fun MainActivity.refreshDownloadsList() {
 
 // ── Tabs ───────────────────────────────────────
 
+/** Mobile-only presentation modes for the existing shared Live/EPG surface. */
+internal enum class MobileLiveMode {
+    CHANNELS,
+    GUIDE
+}
+
 internal fun MainActivity.selectTab(
     index: Int,
     tvLiveDestination: TvLiveRailDestination = TvLiveRailDestination.LIVE,
@@ -261,9 +267,13 @@ internal fun MainActivity.selectTab(
         // and releases the preview player entirely - just re-showing the pane here
         // left it empty/stopped forever until something else happened to trigger a
         // reload. Explicitly reload whatever channel was last focused.
-        showLivePreviewPane()
-        buildGuideHeader()
-        lastFocusedLiveChannel?.let { requestPreviewLoad(it) }
+        if (deviceFormFactor == DeviceFormFactor.TV) {
+            showLivePreviewPane()
+            buildGuideHeader()
+            lastFocusedLiveChannel?.let { requestPreviewLoad(it) }
+        } else {
+            applyMobileLivePresentation()
+        }
     } else {
         releaseLivePreview()
     }
@@ -372,7 +382,7 @@ internal fun MainActivity.selectTab(
 
 internal fun MainActivity.buildGuideHeader() {
     val density = resources.displayMetrics.density
-    val slotWidthPx = (30 * LiveGuideAdapter.MINUTE_WIDTH_DP * density).toInt()
+    val slotWidthPx = (30 * liveAdapter.minuteWidthDp * density).toInt()
     val timeFmt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
     val calendar = java.util.Calendar.getInstance()
 
@@ -421,7 +431,63 @@ internal fun MainActivity.setupChannelList() {
     binding.homeContent.layoutManager = LinearLayoutManager(this)
     binding.downloadsContent.layoutManager = LinearLayoutManager(this)
     binding.downloadsContent.adapter = downloadAdapter
+    if (deviceFormFactor == DeviceFormFactor.MOBILE) setupMobileLiveControls()
 }
+
+/** Installs the phone-only controls over the shared Live surface. */
+private fun MainActivity.setupMobileLiveControls() {
+    binding.mobileLiveModeBar.visibility = View.VISIBLE
+    binding.mobileLiveCategoriesButton.setOnClickListener { toggleMobileLiveCategories() }
+    binding.mobileLiveChannelsButton.setOnClickListener { setMobileLiveMode(MobileLiveMode.CHANNELS) }
+    binding.mobileLiveGuideButton.setOnClickListener { setMobileLiveMode(MobileLiveMode.GUIDE) }
+    applyMobileLivePresentation()
+}
+
+/** Switches presentation only; the channel list, category filter and EPG cache are shared. */
+internal fun MainActivity.setMobileLiveMode(mode: MobileLiveMode) {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    if (mobileLiveMode == mode) return
+    mobileLiveMode = mode
+    if (activeTab == 0 && !showingHome && !showingDiscover && !showingDownloads && !showingCatchup) {
+        applyMobileLivePresentation()
+    }
+}
+
+private fun MainActivity.applyMobileLivePresentation() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    val showingGuide = mobileLiveMode == MobileLiveMode.GUIDE
+    binding.mobileLiveModeBar.visibility = View.VISIBLE
+    binding.mobileLiveChannelsButton.isSelected = !showingGuide
+    binding.mobileLiveGuideButton.isSelected = showingGuide
+    binding.guideHeaderContainer.visibility = if (showingGuide) View.VISIBLE else View.GONE
+    liveAdapter.setPresentation(
+        showGuide = showingGuide,
+        minuteWidthDp = if (showingGuide) MOBILE_GUIDE_MINUTE_WIDTH_DP else LiveGuideAdapter.MINUTE_WIDTH_DP
+    )
+    // Phone Live has no floating preview: it obscures the narrow channel list and a touch on a
+    // channel opens playback directly. The preview remains untouched on TV.
+    releaseLivePreview()
+    if (showingGuide) buildGuideHeader()
+    updateMobileLiveCategoriesButton()
+}
+
+private fun MainActivity.toggleMobileLiveCategories() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE || activeTab != 0 || !isPortraitPhone()) return
+    portraitSidebarExpanded = !portraitSidebarExpanded
+    applySidebarVisibility(tabWantsSidebar = true)
+    updateMobileLiveCategoriesButton()
+}
+
+internal fun MainActivity.updateMobileLiveCategoriesButton() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    val expanded = binding.categorySidebar.visibility == View.VISIBLE
+    binding.mobileLiveCategoriesButton.isSelected = expanded
+    binding.mobileLiveCategoriesButton.text = getString(
+        if (expanded) R.string.mobile_live_hide_categories else R.string.mobile_live_categories
+    )
+}
+
+private const val MOBILE_GUIDE_MINUTE_WIDTH_DP = 1.8f
 
 internal fun MainActivity.playItem(channel: Channel) {
     // User-initiated play: never inherit a resume-prompt suppression left over from

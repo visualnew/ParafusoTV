@@ -130,6 +130,7 @@
          Without this layer, horizontally-scrolled program blocks draw straight over the
          channel-name column to the left. -->
     <FrameLayout
+        android:id="@+id/guideProgramContainer"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1">

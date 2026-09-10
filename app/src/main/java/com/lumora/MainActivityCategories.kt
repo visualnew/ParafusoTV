@@ -1576,6 +1576,14 @@ internal fun MainActivity.onCategorySelected(category: CategoryFilter) {
         categoryAdapter.setSelected(selectedRowId)
         scope.launch { applyCategoryFilter(focusFirstLiveChannel = activeTab == 0) }
     }
+    // On a portrait phone, category selection is a temporary touch panel rather than a
+    // permanent TV sidebar. Keep it open while expanding a parent; otherwise return the
+    // channel list to its full usable width immediately after the user's choice.
+    if (!expandChanged && deviceFormFactor == DeviceFormFactor.MOBILE && activeTab == 0 && isPortraitPhone()) {
+        portraitSidebarExpanded = false
+        applySidebarVisibility(tabWantsSidebar = true)
+        updateMobileLiveCategoriesButton()
+    }
 }
 
 internal fun MainActivity.setStatus(text: String, visible: Boolean) {

@@ -1166,9 +1166,66 @@
                         android:orientation="vertical"
                         android:paddingHorizontal="16dp">
 
+                        <!-- Touch-first mobile controls. TV keeps its existing guide chrome. -->
+                        <LinearLayout
+                            android:id="@+id/mobileLiveModeBar"
+                            android:layout_width="match_parent"
+                            android:layout_height="48dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="4dp"
+                            android:paddingBottom="4dp"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/mobileLiveCategoriesButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_mobile_bottom_navigation_item"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center"
+                                android:paddingHorizontal="6dp"
+                                android:text="@string/mobile_live_categories"
+                                android:textColor="@color/mobile_bottom_navigation_tint"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/mobileLiveChannelsButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_mobile_bottom_navigation_item"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center"
+                                android:paddingHorizontal="6dp"
+                                android:text="@string/mobile_live_channels"
+                                android:textColor="@color/mobile_bottom_navigation_tint"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/mobileLiveGuideButton"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginStart="4dp"
+                                android:layout_weight="1"
+                                android:background="@drawable/bg_mobile_bottom_navigation_item"
+                                android:clickable="true"
+                                android:focusable="true"
+                                android:gravity="center"
+                                android:paddingHorizontal="6dp"
+                                android:text="@string/guide"
+                                android:textColor="@color/mobile_bottom_navigation_tint"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
                         <!-- Guide time ruler: spacer matches the channel-info column width so
                              time labels line up with the program blocks, not the channel names. -->
                         <LinearLayout
+                            android:id="@+id/guideHeaderContainer"
                             android:layout_width="match_parent"
                             android:layout_height="42dp"
                             android:orientation="horizontal">

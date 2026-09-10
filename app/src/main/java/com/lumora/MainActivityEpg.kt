@@ -157,6 +157,10 @@ internal fun MainActivity.ensurePreviewPlayer(): PlayerManager {
 }
 
 internal fun MainActivity.showLivePreviewPane() {
+    if (deviceFormFactor == com.lumora.util.DeviceFormFactor.MOBILE) {
+        releaseLivePreview()
+        return
+    }
     if (liveChannels.isEmpty()) return
     binding.livePreviewGutter.visibility = View.VISIBLE
     binding.livePreviewPane.visibility = View.VISIBLE
@@ -367,6 +371,10 @@ internal fun MainActivity.onChannelOkPress(channel: Channel) {
 
 /** Debounced so fast D-pad scrolling through the list doesn't spawn a load per row. */
 internal fun MainActivity.requestPreviewLoad(channel: Channel) {
+    // Mobile opens channels directly and deliberately has no inline preview surface.
+    // Keep every preview load, including calls from the shared category filter, out of
+    // the phone path rather than creating a hidden second player.
+    if (deviceFormFactor == com.lumora.util.DeviceFormFactor.MOBILE) return
     lastFocusedLiveChannel = channel
     previewTargetChannel = channel
     if (activeTab != 0 || isPlayerVisible) return

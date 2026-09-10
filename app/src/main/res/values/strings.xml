@@ -68,6 +68,9 @@
     <string name="tab_live_tv">Live TV</string>
     <string name="mobile_nav_catalog">Catalog</string>
     <string name="mobile_nav_more">More</string>
+    <string name="mobile_live_categories">Categories</string>
+    <string name="mobile_live_hide_categories">Hide categories</string>
+    <string name="mobile_live_channels">Channels</string>
     <!-- Catch Up: Xtream tv_archive playback (channel → day → programme that already aired). -->
     <string name="tab_catchup">Catch Up</string>
     <string name="catchup_crumb_categories">Catch Up · %1$d channels with an archive</string>

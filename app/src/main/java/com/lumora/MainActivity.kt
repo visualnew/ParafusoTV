@@ -709,6 +709,8 @@ class MainActivity : AppCompatActivity() {
      * the selected category; this only tells the dashboard rail whether Live or Guide opened it.
      */
     internal var tvLiveRailDestination = TvLiveRailDestination.LIVE
+    /** Mobile-only presentation state for the shared Live/EPG surface. */
+    internal var mobileLiveMode = MobileLiveMode.CHANNELS
     /** Invalidates an older asynchronous tab build when the user chooses another tab route. */
     internal var tabSelectionGeneration = 0
     /** Phone portrait auto-hides the category rail (see isSidebarCollapsed): the screen is
@@ -1028,7 +1030,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     internal val liveAdapter = LiveGuideAdapter(
-        onChannelClick = { channel -> onChannelOkPress(channel) },
+        // A remote keeps the established preview-then-play flow. On a phone there is no
+        // preview pane, so a tap must open the selected channel directly.
+        onChannelClick = { channel ->
+            if (deviceFormFactor == DeviceFormFactor.MOBILE) playItem(channel) else onChannelOkPress(channel)
+        },
         onChannelFocused = { channel -> lastFocusedLiveChannel = channel },
         onChannelLongPress = { channel -> toggleFavoriteChannel(channel) },
         onChannelFavClick = { channel -> toggleFavoriteChannel(channel) },
