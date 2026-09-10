@@ -1064,6 +1064,7 @@ class MainActivity : AppCompatActivity() {
         onItemClick = { item -> onHomeItemClick(item) },
         onItemLongClick = { item -> toggleFavoriteVodItem(item) },
         onHideClick = { shelf -> if (shelf.title == getString(R.string.category_continue_watching)) clearContinueWatching() else toggleHiddenHomeShelf(shelf.title) },
+        onSeeAllClick = { shelf -> onMobileHomeSeeAll(shelf) },
         showPinButton = false
     ).apply { topRowFocusUpTargetId = R.id.tabHome }
     // Single-category selection swaps to these - a vertical, scrollable grid instead of
@@ -1798,11 +1799,17 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     0
                 }
+                val bottomInset = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+                val bottomPadding = if (view === mobileBottomNavigationView()) {
+                    base[3] + bottomInset
+                } else {
+                    base[3] + insets.bottom + mobileContentBottom
+                }
                 view.setPadding(
                     (if (view === binding.mainContent && deviceFormFactor == DeviceFormFactor.MOBILE) 0 else base[0]) + insets.left,
                     base[1] + insets.top,
                     base[2] + insets.right,
-                    base[3] + insets.bottom + mobileContentBottom
+                    bottomPadding
                 )
             }
             windowInsets

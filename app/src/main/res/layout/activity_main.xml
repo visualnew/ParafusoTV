@@ -1370,6 +1370,66 @@
                     android:paddingBottom="8dp"
                     android:visibility="gone" />
 
+                <!-- Mobile-only controls for the existing Films/Series surfaces. Kept as an
+                     overlay so the shared RecyclerViews, adapters and TV hierarchy remain
+                     unchanged; MainActivity reserves its vertical footprint on phones. -->
+                <LinearLayout
+                    android:id="@+id/mobileCatalogModeBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_gravity="top"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/mobileCatalogCategoriesButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_mobile_bottom_navigation_item"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="6dp"
+                        android:text="@string/mobile_live_categories"
+                        android:textColor="@color/mobile_bottom_navigation_tint"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/mobileCatalogMoviesButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_mobile_bottom_navigation_item"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="6dp"
+                        android:text="@string/films_tab"
+                        android:textColor="@color/mobile_bottom_navigation_tint"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/mobileCatalogSeriesButton"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_mobile_bottom_navigation_item"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:gravity="center"
+                        android:paddingHorizontal="6dp"
+                        android:text="@string/series_tab"
+                        android:textColor="@color/mobile_bottom_navigation_tint"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
                 <!-- Content area: Catch Up. Columns rather than replaced screens: the
                      channel stays on the left while the days fly out beside it and that
                      day's programmes beside those, so the whole path you took is on screen
@@ -1579,6 +1639,7 @@
                      reach the plot/cast/episodes below, and D-pad "scroll down" reaches
                      them in far fewer presses. -->
                 <LinearLayout
+                    android:id="@+id/detailHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -1586,6 +1647,7 @@
                     android:paddingTop="72dp">
 
                     <FrameLayout
+                        android:id="@+id/detailPosterContainer"
                         android:layout_width="120dp"
                         android:layout_height="180dp"
                         android:background="@drawable/bg_rounded_poster"
@@ -1600,6 +1662,7 @@
                     </FrameLayout>
 
                     <LinearLayout
+                        android:id="@+id/detailHeaderInfo"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="16dp"
@@ -1706,6 +1769,7 @@
                     android:paddingBottom="24dp">
 
                     <LinearLayout
+                        android:id="@+id/detailActionsRow"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="20dp"

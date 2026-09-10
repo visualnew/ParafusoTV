@@ -355,6 +355,9 @@ internal fun MainActivity.submitCategories(categories: List<CategoryFilter>) {
     // single canonical re-show point for the rail, so the collapsed pref applies
     // everywhere a tab is (re)built (tab switch, category rebuild, catalog refresh).
     applySidebarVisibility(onCategorizedTab && categories.size > 1)
+    if (deviceFormFactor == DeviceFormFactor.MOBILE && activeTab in 1..2) {
+        applyMobileCatalogPresentation()
+    }
     categoryAdapter.topRowFocusUpTargetId = when (activeTab) {
         0 -> R.id.tabLive
         1 -> R.id.tabSeries
@@ -481,16 +484,23 @@ internal fun MainActivity.applySidebarVisibility(tabWantsSidebar: Boolean) {
     lastTabWantsSidebar = tabWantsSidebar
     val collapsed = isSidebarCollapsed()
     binding.categorySidebar.visibility = if (tabWantsSidebar && !collapsed) View.VISIBLE else View.GONE
-    binding.sidebarExpandButton.visibility = if (tabWantsSidebar && collapsed) View.VISIBLE else View.GONE
-    if (tabWantsSidebar) {
+    // Mobile catalog has its own explicit Categories action; keeping the legacy floating
+    // affordance there would duplicate it and overlap the top switcher. Live keeps its
+    // established behavior unchanged.
+    val mobileCatalog = deviceFormFactor == DeviceFormFactor.MOBILE && activeTab in 1..2
+    binding.sidebarExpandButton.visibility = if (tabWantsSidebar && collapsed && !mobileCatalog) View.VISIBLE else View.GONE
+    // The mobile catalog switcher floats over the same FrameLayout as the grids, so its
+    // footprint must be reserved even in a providerless catalog (which has no sidebar).
+    if (tabWantsSidebar || mobileCatalog) {
         val content: View = when (activeTab) {
             1 -> binding.seriesContent
             2 -> binding.filmsContent
             else -> binding.liveGuideColumn
         }
         val baseTop = contentBasePaddingTop.getOrPut(content) { content.paddingTop }
-        val reservePx = (56 * resources.displayMetrics.density).toInt()
-        val newTop = if (collapsed) baseTop + reservePx else baseTop
+        val sidebarReservePx = if (tabWantsSidebar && collapsed) (56 * resources.displayMetrics.density).toInt() else 0
+        val catalogReservePx = if (mobileCatalog) (56 * resources.displayMetrics.density).toInt() else 0
+        val newTop = baseTop + sidebarReservePx + catalogReservePx
         if (content.paddingTop != newTop) {
             content.setPadding(content.paddingLeft, newTop, content.paddingRight, content.paddingBottom)
         }
@@ -1579,10 +1589,10 @@ internal fun MainActivity.onCategorySelected(category: CategoryFilter) {
     // On a portrait phone, category selection is a temporary touch panel rather than a
     // permanent TV sidebar. Keep it open while expanding a parent; otherwise return the
     // channel list to its full usable width immediately after the user's choice.
-    if (!expandChanged && deviceFormFactor == DeviceFormFactor.MOBILE && activeTab == 0 && isPortraitPhone()) {
+    if (!expandChanged && deviceFormFactor == DeviceFormFactor.MOBILE && activeTab in 0..2 && isPortraitPhone()) {
         portraitSidebarExpanded = false
         applySidebarVisibility(tabWantsSidebar = true)
-        updateMobileLiveCategoriesButton()
+        if (activeTab == 0) updateMobileLiveCategoriesButton() else applyMobileCatalogPresentation()
     }
 }
 
@@ -1661,6 +1671,8 @@ internal fun MainActivity.installLegacyTvDashboardChrome() {
  */
 internal fun MainActivity.installLegacyMobileDashboardChrome() {
     binding.dashboardRail.visibility = View.GONE
+    binding.homeContent.clipChildren = true
+    binding.homeContent.clipToPadding = true
     binding.mainContent.setPadding(
         0,
         binding.mainContent.paddingTop,
@@ -1673,10 +1685,10 @@ internal fun MainActivity.installLegacyMobileDashboardChrome() {
     mobileBottomNavigationView().visibility = View.VISIBLE
     mobileNavItem(R.id.mobileNavHome).setOnClickListener { selectHome() }
     mobileNavItem(R.id.mobileNavLive).setOnClickListener { selectTab(0) }
-    // Catalog is intentionally deterministic in 5.1. The Films/Series chooser belongs to 5.4.
-    mobileNavItem(R.id.mobileNavCatalog).setOnClickListener { selectTab(2) }
+    mobileNavItem(R.id.mobileNavCatalog).setOnClickListener { selectMobileCatalogTab(2) }
     mobileNavItem(R.id.mobileNavSearch).setOnClickListener { showSearchDialog() }
     mobileNavItem(R.id.mobileNavMore).setOnClickListener { showMobileMorePanel() }
+    setupMobileCatalogControls()
     renderLegacyMobileBottomNavigationSelection()
 }
 
@@ -1695,6 +1707,20 @@ private fun MainActivity.mobileNavItems(): List<View> = listOf(
     mobileNavItem(R.id.mobileNavMore)
 )
 
+/** Phone Home owns top-level destinations; shelf grids elsewhere keep their existing See All path. */
+internal fun MainActivity.onMobileHomeSeeAll(shelf: ContentShelf) {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) {
+        showSeeAll(shelf)
+        return
+    }
+    when (shelf.title) {
+        getString(R.string.tab_live_tv) -> selectTab(0)
+        getString(R.string.films_tab) -> selectMobileCatalogTab(2)
+        getString(R.string.series_tab) -> selectMobileCatalogTab(1)
+        else -> showSeeAll(shelf)
+    }
+}
+
 /** Mobile-only visibility boundary for fullscreen/overlay legacy surfaces. */
 internal fun MainActivity.setMobileBottomNavigationVisible(visible: Boolean) {
     if (deviceFormFactor != DeviceFormFactor.MOBILE) return
@@ -1703,6 +1729,46 @@ internal fun MainActivity.setMobileBottomNavigationVisible(visible: Boolean) {
     } else {
         View.GONE
     }
+}
+
+/** Installs the phone-only Films/Series switch over the existing catalog surfaces. */
+private fun MainActivity.setupMobileCatalogControls() {
+    binding.mobileCatalogCategoriesButton.setOnClickListener { toggleMobileCatalogCategories() }
+    binding.mobileCatalogMoviesButton.setOnClickListener { selectMobileCatalogTab(2) }
+    binding.mobileCatalogSeriesButton.setOnClickListener { selectMobileCatalogTab(1) }
+    applyMobileCatalogPresentation()
+}
+
+/** The bottom navigation enters Films deterministically; the control then exposes Series. */
+internal fun MainActivity.selectMobileCatalogTab(tab: Int) {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE || tab !in 1..2) return
+    if (activeTab == tab && !showingHome && !showingDiscover && !showingDownloads && !showingCatchup) {
+        applyMobileCatalogPresentation()
+        return
+    }
+    selectTab(tab)
+}
+
+/** Presentation-only state for the shared Films/Series grids. */
+internal fun MainActivity.applyMobileCatalogPresentation() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    val showingCatalog = activeTab in 1..2 && !showingHome && !showingDiscover && !showingDownloads && !showingCatchup
+    binding.mobileCatalogModeBar.visibility = if (showingCatalog) View.VISIBLE else View.GONE
+    if (!showingCatalog) return
+    binding.mobileCatalogMoviesButton.isSelected = activeTab == 2
+    binding.mobileCatalogSeriesButton.isSelected = activeTab == 1
+    val categoriesExpanded = binding.categorySidebar.visibility == View.VISIBLE
+    binding.mobileCatalogCategoriesButton.isSelected = categoriesExpanded
+    binding.mobileCatalogCategoriesButton.text = getString(
+        if (categoriesExpanded) R.string.mobile_live_hide_categories else R.string.mobile_live_categories
+    )
+}
+
+private fun MainActivity.toggleMobileCatalogCategories() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE || activeTab !in 1..2 || !isPortraitPhone()) return
+    portraitSidebarExpanded = !portraitSidebarExpanded
+    applySidebarVisibility(tabWantsSidebar = true)
+    applyMobileCatalogPresentation()
 }
 
 /** A deliberately small bridge to existing actions until the dedicated More surface in 5.5. */
@@ -1996,6 +2062,10 @@ internal fun MainActivity.selectHome() {
     binding.discoverContent.visibility = View.GONE
     binding.contentRow.visibility = View.GONE
     binding.homeContent.visibility = View.VISIBLE
+    if (deviceFormFactor == DeviceFormFactor.MOBILE) {
+        binding.homeContent.clipChildren = true
+        binding.homeContent.clipToPadding = true
+    }
     // Search on Home is only useful with something to search; with no enabled provider
     // updateTopChromeVisibility() keeps it hidden. selectHome used to force it visible
     // unconditionally, which is why it lingered on the empty first screen.

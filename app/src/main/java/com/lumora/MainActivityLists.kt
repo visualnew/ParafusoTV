@@ -262,6 +262,7 @@ internal fun MainActivity.selectTab(
     binding.downloadsContent.visibility = View.GONE
     binding.downloadsEmptyText.visibility = View.GONE
     mainHandler.removeCallbacks(downloadsProgressRunnable)
+    applyMobileCatalogPresentation()
     if (index == 0) {
         // releaseLivePreview() (called when leaving Live TV for any other tab) stops
         // and releases the preview player entirely - just re-showing the pane here
@@ -668,6 +669,7 @@ internal fun MainActivity.showContentDetail(item: Channel, versionGroup: List<Ch
     setMobileBottomNavigationVisible(false)
     if (deviceFormFactor == DeviceFormFactor.TV) binding.dashboardRail.visibility = View.GONE
     binding.contentDetailLayout.visibility = View.VISIBLE
+    applyMobileContentDetailPresentation()
     applyStatus()
 
     val backdrop = binding.detailBackdrop
@@ -1426,6 +1428,44 @@ private fun needsEpisodeMetadata(episode: Channel, seriesName: String): Boolean 
         episode.posterUrl.isNullOrBlank() ||
         episode.releaseDate.isNullOrBlank() ||
         isPlaceholderEpisodeTitle(episode, seriesName)
+
+/** Reflows only the legacy detail header/actions for a portrait-friendly phone presentation. */
+private fun MainActivity.applyMobileContentDetailPresentation() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    val density = resources.displayMetrics.density
+    binding.detailHeader.orientation = LinearLayout.VERTICAL
+    binding.detailHeader.setPadding(
+        (16 * density).toInt(),
+        (28 * density).toInt(),
+        (16 * density).toInt(),
+        0
+    )
+    (binding.detailPosterContainer.layoutParams as LinearLayout.LayoutParams).apply {
+        width = (144 * density).toInt()
+        height = (216 * density).toInt()
+        gravity = android.view.Gravity.CENTER_HORIZONTAL
+    }.also { binding.detailPosterContainer.layoutParams = it }
+    (binding.detailHeaderInfo.layoutParams as LinearLayout.LayoutParams).apply {
+        width = ViewGroup.LayoutParams.MATCH_PARENT
+        height = ViewGroup.LayoutParams.WRAP_CONTENT
+        weight = 0f
+        marginStart = 0
+        topMargin = (16 * density).toInt()
+    }.also { binding.detailHeaderInfo.layoutParams = it }
+    binding.detailTitle.maxLines = 3
+    binding.detailPlot.maxLines = 8
+    binding.detailCast.maxLines = 4
+
+    binding.detailActionsRow.orientation = LinearLayout.VERTICAL
+    for (index in 0 until binding.detailActionsRow.childCount) {
+        val action = binding.detailActionsRow.getChildAt(index)
+        (action.layoutParams as? LinearLayout.LayoutParams)?.apply {
+            width = ViewGroup.LayoutParams.MATCH_PARENT
+            marginStart = 0
+            topMargin = if (index == 0) 0 else (8 * density).toInt()
+        }?.also { action.layoutParams = it }
+    }
+}
 
 internal fun MainActivity.hideContentDetail() {
     isContentDetailVisible = false
