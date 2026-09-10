@@ -25,6 +25,8 @@ import java.util.Locale
 // ── Discover (TMDB browse) & Home shelves ──
 //
 // Extracted from MainActivity.kt; see that file's header.
+private const val MOBILE_HOME_DISCOVERY_LIMIT = 30
+
 internal fun MainActivity.setupDiscover() {
     setGridSpan(binding.discoverGrid, discoverGridAdapter, discoverGridFocusUpTargetId())
     // setGridSpan only wires the layout manager/span; the adapter still has to be attached.
@@ -1219,42 +1221,88 @@ private fun MainActivity.buildHomeContinueWatchingItems(): List<Channel> {
     )
 }
 
-/** Existing Home composition retained exactly for mobile. */
+/**
+ * Touch-first Home composition. Personal rows lead when present, then the loaded local catalog
+ * makes a newly created profile useful before it has any playback history of its own.
+ */
 private fun MainActivity.buildMobileHomeShelves(): List<ContentShelf> {
     val shelves = mutableListOf<ContentShelf>()
     val hidden = getHiddenHomeShelves()
+    // Home cards may be snapshots (continue watching, recent playback, server rows) rather
+    // than the exact object held by the current catalog. Resolve each id through one ephemeral
+    // first-occurrence lookup instead of running allChannels.firstOrNull for every card.
+    val catalogById = firstCatalogEntriesById(allChannels)
+    val liveById = firstCatalogEntriesById(liveChannels)
+    val blockedCategories = profileSession.blockedCategories()
+    fun isAllowedMobileHomeItem(item: Channel): Boolean {
+        val catalog = item.id.takeIf { it.isNotBlank() }?.let(catalogById::get)
+        val categoryName = catalog?.categoryName ?: item.categoryName
+        val group = catalog?.group ?: item.group
+        return (blockedCategories.isEmpty() || categoryName.isNullOrBlank() || categoryName !in blockedCategories) &&
+            !isAdultCategory(categoryName, group) &&
+            !isAdultCategory(item.name)
+    }
+    fun addShelf(title: String, items: List<Channel>) {
+        if (items.isNotEmpty() && title !in hidden) shelves.add(ContentShelf(title, items))
+    }
 
-    val continueItems = buildHomeContinueWatchingItems()
-    if (continueItems.isNotEmpty()) shelves.add(ContentShelf(getString(R.string.category_continue_watching), continueItems))
+    // Keep the existing priority and sources, but apply the mobile lookup-backed filter once
+    // after merging. This avoids the legacy per-item catalog scan for a large resume history.
+    val continueItems = continueWatchingTiles(
+        (jellyfinResumeItems + plexResumeItems + PlaybackPositionStore.getAllInProgress(this) + buildUpNextSeriesTiles())
+            .distinctBy { it.id.ifBlank { it.url } }
+            .filter(::isAllowedMobileHomeItem)
+    )
+    addShelf(getString(R.string.category_continue_watching), continueItems)
 
     // "Next Up" is the row that makes a series library usable - the next unwatched episode
     // of everything in flight, straight from the server's own tracking.
     val nextUpItems = (jellyfinNextUpItems + plexNextUpItems)
         .distinctBy { it.id.ifBlank { it.url } }
-        .filterNot(::isAdultHomeItem)
-    if (nextUpItems.isNotEmpty()) shelves.add(ContentShelf(getString(R.string.category_next_up), nextUpItems))
+        .filter(::isAllowedMobileHomeItem)
+    addShelf(getString(R.string.category_next_up), nextUpItems)
 
     val recentItems = RecentlyPlayedStore.getRecentIds(this)
-        .mapNotNull { id -> liveChannels.firstOrNull { it.id == id } }
-        .filterNot(::isAdultHomeItem)
-    if (recentItems.isNotEmpty()) shelves.add(ContentShelf(getString(R.string.category_recently_played), recentItems))
+        .mapNotNull(liveById::get)
+        .filter(::isAllowedMobileHomeItem)
+    addShelf(getString(R.string.category_recently_played), recentItems)
 
-    // Favourited live channels get their own Home row. Long-pressing a channel in the
-    // guide has always favourited it, but the result was only ever visible as the
-    // Favourites category inside Live TV - Home, the screen the app opens on, showed
-    // nothing at all, so the favourites looked like they hadn't saved.
+    // Discovery rows intentionally use only already-loaded lists. Live preserves provider
+    // order; Films and Series reuse the catalog's existing newest-first helper. The bounded
+    // rows keep a first Home render proportional to the visible content rather than a giant
+    // provider list.
+    val liveItems = liveChannels.asSequence()
+        .filter(::isAllowedMobileHomeItem)
+        .take(MOBILE_HOME_DISCOVERY_LIMIT)
+        .toList()
+    addShelf(getString(R.string.tab_live_tv), liveItems)
+
     val favChannelIds = FavoritesStore.getFavoriteChannelIds(this)
-    val favChannels = liveChannels.filter { it.id in favChannelIds }.filterNot(::isAdultHomeItem)
-    if (favChannels.isNotEmpty()) shelves.add(ContentShelf(getString(R.string.category_favourite_channels), favChannels))
-
-    // One shelf for both, since favourite VOD is stored in a single set (see
-    // FavoritesStore.KEY_FAVORITE_SERIES) - a favourited film used to be saved and then
-    // never shown anywhere, because only seriesList was searched for the ids.
     val favIds = FavoritesStore.getFavoriteSeriesIds(this)
-    val favItems = (seriesList + filmList).filter { it.id in favIds }.filterNot(::isAdultHomeItem)
-    if (favItems.isNotEmpty()) shelves.add(ContentShelf(getString(R.string.category_favourites), favItems))
+    // FavoritesStore is profile-scoped. Keep one logical mobile shelf in the same source order
+    // used by TV: live channels, then series, then films; a duplicate id becomes one tile.
+    val favouriteItems = (
+        liveChannels.filter { it.id in favChannelIds } +
+            seriesList.filter { it.id in favIds } +
+            filmList.filter { it.id in favIds }
+        )
+        .filter(::isAllowedMobileHomeItem)
+        .distinctBy { it.id.ifBlank { it.url } }
+    addShelf(getString(R.string.category_favourites), favouriteItems)
 
-    return shelves.filter { it.title !in hidden }
+    val filmItems = newestByDate(
+        filmList.filter(::isAllowedMobileHomeItem),
+        MOBILE_HOME_DISCOVERY_LIMIT
+    )
+    addShelf(getString(R.string.films_tab), filmItems)
+
+    val seriesItems = newestByDate(
+        seriesList.filter(::isAllowedMobileHomeItem),
+        MOBILE_HOME_DISCOVERY_LIMIT
+    )
+    addShelf(getString(R.string.series_tab), seriesItems)
+
+    return shelves
 }
 
 /**
