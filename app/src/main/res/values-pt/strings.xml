@@ -55,6 +55,8 @@
     <string name="search">Pesquisar</string>
     <string name="tab_home">Início</string>
     <string name="tab_live_tv">TV ao vivo</string>
+    <string name="mobile_nav_catalog">Catálogo</string>
+    <string name="mobile_nav_more">Mais</string>
     <!-- Recuperar : reprodução de tv_archive do Xtream (canal → dia → programa que já foi ao ar). -->
     <string name="tab_catchup">Recuperar</string>
     <string name="catchup_crumb_categories">Recuperar · %1$d canais com arquivo</string>

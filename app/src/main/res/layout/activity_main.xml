@@ -1484,6 +1484,13 @@
         </LinearLayout>
     </LinearLayout>
 
+    <!-- Mobile-only primary navigation. The MobilePresentationShell owns its visibility and
+         routes; it stays in the shared activity layout so the existing content surfaces do
+         not need fragments or a second Activity. -->
+    <include
+        android:id="@+id/mobileBottomNavigation"
+        layout="@layout/view_mobile_bottom_navigation" />
+
     <!-- ============================================================
          CONTENT DETAIL (fullscreen "you're now on this film's page",
          not a popup - opened from Series/Films/Home)

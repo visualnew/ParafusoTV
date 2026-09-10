@@ -91,6 +91,8 @@
          tab bar itself is wrap_content around them - so the row's height is a function of
          tab_text, not a fixed bar the labels happen to sit inside. -->
     <dimen name="tab_padding_vertical">12dp</dimen>
+    <!-- Shared visual height of the touch-first bottom navigation, excluding system insets. -->
+    <dimen name="mobile_bottom_navigation_height">64dp</dimen>
     <!-- Extra gap before the first (Live TV) tab, TV tier only (see values-sw540dp) - zero
          here, the brand's own translationX already sets the phone spacing. -->
     <dimen name="tab_live_start_gap">0dp</dimen>

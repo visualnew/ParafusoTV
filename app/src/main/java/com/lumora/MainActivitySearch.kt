@@ -29,6 +29,7 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
     // two and they render on top of each other. The toolbar stays usable over Settings by
     // design, so opening Search here has to close Settings first.
     activeSettingsOverlay?.dismiss()
+    setMobileBottomNavigationVisible(false)
     val searchView = layoutInflater.inflate(R.layout.dialog_search, null)
     val input = searchView.findViewById<EditText>(R.id.searchInput)
     val statusText = searchView.findViewById<TextView>(R.id.searchStatus)
@@ -252,6 +253,7 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
         focusFirstResultOnNextPublish = false
         activeSearchOverlay = null
         if (tabBarWasVisible) binding.tabBar.visibility = View.VISIBLE
+        setMobileBottomNavigationVisible(true)
         applyStatus()
         if (showingHome) selectHome() else if (showingDiscover) selectDiscover() else if (showingDownloads) selectDownloads() else selectTab(activeTab)
     }

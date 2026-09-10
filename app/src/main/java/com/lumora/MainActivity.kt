@@ -694,7 +694,8 @@ class MainActivity : AppCompatActivity() {
             formFactor = deviceFormFactor,
             installTvLegacyChrome = { installLegacyTvDashboardChrome() },
             renderTvLegacyNavigationSelection = { renderLegacyTvDashboardRailSelection() },
-            installMobileLegacyChrome = { installLegacyMobileDashboardChrome() }
+            installMobileLegacyChrome = { installLegacyMobileDashboardChrome() },
+            renderMobileNavigationSelection = { renderLegacyMobileBottomNavigationSelection() }
         )
     }
     /** Legacy compatibility bridge for the existing Activity and extension call sites. */
@@ -1771,7 +1772,12 @@ class MainActivity : AppCompatActivity() {
      * cutout inset is included for phones with a camera notch in the status bar area.
      */
     private fun applySystemBarInsets() {
-        val targets = listOf(binding.mainContent, binding.contentDetailLayout, binding.controlsOverlay)
+        val targets = listOf(
+            binding.mainContent,
+            binding.contentDetailLayout,
+            binding.controlsOverlay,
+            mobileBottomNavigationView()
+        )
         val basePadding = targets.map { intArrayOf(it.paddingLeft, it.paddingTop, it.paddingRight, it.paddingBottom) }
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, windowInsets ->
             val insets = windowInsets.getInsets(
@@ -1779,11 +1785,18 @@ class MainActivity : AppCompatActivity() {
             )
             targets.forEachIndexed { index, view ->
                 val base = basePadding[index]
+                val mobileContentBottom = if (
+                    view === binding.mainContent && deviceFormFactor == DeviceFormFactor.MOBILE
+                ) {
+                    resources.getDimensionPixelSize(R.dimen.mobile_bottom_navigation_height)
+                } else {
+                    0
+                }
                 view.setPadding(
-                    base[0] + insets.left,
+                    (if (view === binding.mainContent && deviceFormFactor == DeviceFormFactor.MOBILE) 0 else base[0]) + insets.left,
                     base[1] + insets.top,
                     base[2] + insets.right,
-                    base[3] + insets.bottom
+                    base[3] + insets.bottom + mobileContentBottom
                 )
             }
             windowInsets

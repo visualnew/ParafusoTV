@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mobileBottomNavigation"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/mobile_bottom_navigation_height"
+    android:layout_gravity="bottom"
+    android:background="@drawable/bg_mobile_bottom_navigation"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingTop="6dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="6dp"
+    android:visibility="gone">
+
+    <LinearLayout
+        android:id="@+id/mobileNavHome"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/bg_mobile_bottom_navigation_item"
+        android:clickable="true"
+        android:contentDescription="@string/tab_home"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_home"
+            android:tint="@color/mobile_bottom_navigation_tint" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/tab_home"
+            android:textColor="@color/mobile_bottom_navigation_tint"
+            android:textSize="11sp"
+            android:typeface="sans" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mobileNavLive"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/bg_mobile_bottom_navigation_item"
+        android:clickable="true"
+        android:contentDescription="@string/tab_live_tv"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_live_tv"
+            android:tint="@color/mobile_bottom_navigation_tint" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/tab_live_tv"
+            android:textColor="@color/mobile_bottom_navigation_tint"
+            android:textSize="11sp"
+            android:typeface="sans" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mobileNavCatalog"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/bg_mobile_bottom_navigation_item"
+        android:clickable="true"
+        android:contentDescription="@string/mobile_nav_catalog"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_films"
+            android:tint="@color/mobile_bottom_navigation_tint" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/mobile_nav_catalog"
+            android:textColor="@color/mobile_bottom_navigation_tint"
+            android:textSize="11sp"
+            android:typeface="sans" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mobileNavSearch"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/bg_mobile_bottom_navigation_item"
+        android:clickable="true"
+        android:contentDescription="@string/search"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_search"
+            android:tint="@color/mobile_bottom_navigation_tint" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/search"
+            android:textColor="@color/mobile_bottom_navigation_tint"
+            android:textSize="11sp"
+            android:typeface="sans" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mobileNavMore"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/bg_mobile_bottom_navigation_item"
+        android:clickable="true"
+        android:contentDescription="@string/mobile_nav_more"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_menu"
+            android:tint="@color/mobile_bottom_navigation_tint" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/mobile_nav_more"
+            android:textColor="@color/mobile_bottom_navigation_tint"
+            android:textSize="11sp"
+            android:typeface="sans" />
+    </LinearLayout>
+</LinearLayout>

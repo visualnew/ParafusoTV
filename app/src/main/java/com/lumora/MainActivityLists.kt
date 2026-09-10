@@ -599,6 +599,7 @@ internal fun MainActivity.showContentDetail(item: Channel, versionGroup: List<Ch
     // detail re-opened on a sibling version (the chips further down) updates it too.
     detailReturnItemId = item.id
     binding.mainContent.visibility = View.GONE
+    setMobileBottomNavigationVisible(false)
     if (deviceFormFactor == DeviceFormFactor.TV) binding.dashboardRail.visibility = View.GONE
     binding.contentDetailLayout.visibility = View.VISIBLE
     applyStatus()
@@ -1366,6 +1367,7 @@ internal fun MainActivity.hideContentDetail() {
     nowShowingDetailId = null
     binding.contentDetailLayout.visibility = View.GONE
     binding.mainContent.visibility = View.VISIBLE
+    setMobileBottomNavigationVisible(true)
     // The rail is a sibling above the detail layout. Restore it before requesting either the
     // exact poster or the TV fallback so FocusFinder cannot reach it while detail is open.
     if (deviceFormFactor == DeviceFormFactor.TV) binding.dashboardRail.visibility = View.VISIBLE

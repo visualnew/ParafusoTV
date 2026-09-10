@@ -469,6 +469,7 @@ internal fun MainActivity.showProviderSettings() {
     // Close Search if it's open - the two share the weighted content slot and would otherwise
     // render stacked on top of each other (see showSearchDialog).
     activeSearchOverlay?.dismiss()
+    setMobileBottomNavigationVisible(false)
     // Every open of Settings on a portrait phone starts with the rail hidden, the same way
     // rotating into portrait re-hides the category rail: the panes need the full width to
     // be readable, and the tree is inflated fresh here anyway, so an expand from a previous
@@ -1775,6 +1776,7 @@ internal fun MainActivity.showProviderSettings() {
         traktSignInJob?.cancel()
         traktSignInJob = null
         activeSettingsOverlay = null
+        setMobileBottomNavigationVisible(true)
         applyStatus()
         refreshIptvProviderList = {}
         // Both close over views in the dismissed dialog - holding them past this leaks the

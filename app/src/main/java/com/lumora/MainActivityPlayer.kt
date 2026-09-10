@@ -620,6 +620,7 @@ internal fun MainActivity.showPlayerFor(
     currentEpisodeQueueIndex = -1
     enterParafusoPlaybackOrientation()
     isPlayerVisible = true
+    setMobileBottomNavigationVisible(false)
     binding.dashboardRail.visibility = View.GONE
     binding.navRailHome.visibility = View.GONE
     binding.navRailLive.visibility = View.GONE
@@ -1972,7 +1973,10 @@ internal fun MainActivity.hidePlayer() {
     exitParafusoPlaybackOrientation()
     binding.playerLayout.visibility = View.GONE
     binding.mainContent.visibility = View.VISIBLE
-    binding.dashboardRail.visibility = View.VISIBLE
+    setMobileBottomNavigationVisible(true)
+    // The TV shell owns the dashboard rail. It must never reappear over mobile content when
+    // a player session closes.
+    binding.dashboardRail.visibility = if (isTv) View.VISIBLE else View.GONE
     binding.navRailHome.visibility = View.VISIBLE
     binding.navRailLive.visibility = View.VISIBLE
     binding.navRailFilms.visibility = View.VISIBLE

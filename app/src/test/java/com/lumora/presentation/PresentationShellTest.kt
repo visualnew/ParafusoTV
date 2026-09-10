@@ -11,12 +11,14 @@ class PresentationShellTest {
         var tvInstalls = 0
         var mobileInstalls = 0
         var tvSelectionRenders = 0
+        var mobileSelectionRenders = 0
 
         presentationShellFor(
             formFactor = DeviceFormFactor.TV,
             installTvLegacyChrome = { tvInstalls++ },
             renderTvLegacyNavigationSelection = { tvSelectionRenders++ },
-            installMobileLegacyChrome = { mobileInstalls++ }
+            installMobileLegacyChrome = { mobileInstalls++ },
+            renderMobileNavigationSelection = { mobileSelectionRenders++ }
         ).also { shell ->
             shell.installLegacyChrome()
             shell.renderLegacyNavigationSelection()
@@ -25,6 +27,7 @@ class PresentationShellTest {
         assertEquals(1, tvInstalls)
         assertEquals(0, mobileInstalls)
         assertEquals(1, tvSelectionRenders)
+        assertEquals(0, mobileSelectionRenders)
     }
 
     @Test
@@ -32,12 +35,14 @@ class PresentationShellTest {
         var tvInstalls = 0
         var mobileInstalls = 0
         var tvSelectionRenders = 0
+        var mobileSelectionRenders = 0
 
         presentationShellFor(
             formFactor = DeviceFormFactor.MOBILE,
             installTvLegacyChrome = { tvInstalls++ },
             renderTvLegacyNavigationSelection = { tvSelectionRenders++ },
-            installMobileLegacyChrome = { mobileInstalls++ }
+            installMobileLegacyChrome = { mobileInstalls++ },
+            renderMobileNavigationSelection = { mobileSelectionRenders++ }
         ).also { shell ->
             shell.installLegacyChrome()
             shell.renderLegacyNavigationSelection()
@@ -46,5 +51,6 @@ class PresentationShellTest {
         assertEquals(0, tvInstalls)
         assertEquals(1, mobileInstalls)
         assertEquals(0, tvSelectionRenders)
+        assertEquals(1, mobileSelectionRenders)
     }
 }

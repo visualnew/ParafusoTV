@@ -1647,15 +1647,76 @@ internal fun MainActivity.installLegacyTvDashboardChrome() {
     }
 }
 
-/** Existing mobile chrome only: hide the TV rail and retain the legacy content offset. */
+/**
+ * Mobile chrome keeps the shared content surfaces but replaces the legacy top tabs as the
+ * primary navigation. The hidden tab hierarchy remains wired for legacy call sites.
+ */
 internal fun MainActivity.installLegacyMobileDashboardChrome() {
     binding.dashboardRail.visibility = View.GONE
     binding.mainContent.setPadding(
         0,
         binding.mainContent.paddingTop,
         binding.mainContent.paddingRight,
-        binding.mainContent.paddingBottom
+        binding.mainContent.paddingBottom + resources.getDimensionPixelSize(R.dimen.mobile_bottom_navigation_height)
     )
+    // Keep the old controls in the view tree for their existing routes, but hide their common
+    // parent so provider refreshes and simple-mode recomputation cannot make them visible again.
+    binding.tabBar.visibility = View.GONE
+    mobileBottomNavigationView().visibility = View.VISIBLE
+    mobileNavItem(R.id.mobileNavHome).setOnClickListener { selectHome() }
+    mobileNavItem(R.id.mobileNavLive).setOnClickListener { selectTab(0) }
+    // Catalog is intentionally deterministic in 5.1. The Films/Series chooser belongs to 5.4.
+    mobileNavItem(R.id.mobileNavCatalog).setOnClickListener { selectTab(2) }
+    mobileNavItem(R.id.mobileNavSearch).setOnClickListener { showSearchDialog() }
+    mobileNavItem(R.id.mobileNavMore).setOnClickListener { showMobileMorePanel() }
+    renderLegacyMobileBottomNavigationSelection()
+}
+
+/** The navigation is an included legacy-View layout, so keep its view lookup at this boundary. */
+internal fun MainActivity.mobileBottomNavigationView(): View =
+    binding.root.findViewById(R.id.mobileBottomNavigation)
+
+private fun MainActivity.mobileNavItem(id: Int): View =
+    mobileBottomNavigationView().findViewById(id)
+
+private fun MainActivity.mobileNavItems(): List<View> = listOf(
+    mobileNavItem(R.id.mobileNavHome),
+    mobileNavItem(R.id.mobileNavLive),
+    mobileNavItem(R.id.mobileNavCatalog),
+    mobileNavItem(R.id.mobileNavSearch),
+    mobileNavItem(R.id.mobileNavMore)
+)
+
+/** Mobile-only visibility boundary for fullscreen/overlay legacy surfaces. */
+internal fun MainActivity.setMobileBottomNavigationVisible(visible: Boolean) {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    mobileBottomNavigationView().visibility = if (visible && binding.mainContent.visibility == View.VISIBLE) {
+        View.VISIBLE
+    } else {
+        View.GONE
+    }
+}
+
+/** A deliberately small bridge to existing actions until the dedicated More surface in 5.5. */
+private fun MainActivity.showMobileMorePanel() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    val moreItem = mobileNavItem(R.id.mobileNavMore)
+    mobileNavItems().forEach { it.isSelected = it === moreItem }
+    AlertDialog.Builder(this)
+        .setTitle(R.string.mobile_nav_more)
+        .setItems(arrayOf(
+            getString(R.string.settings),
+            getString(R.string.downloads),
+            getString(R.string.list_refresh_now)
+        )) { _, choice ->
+            when (choice) {
+                0 -> showProviderSettings()
+                1 -> selectDownloads()
+                2 -> binding.btnRefresh.performClick()
+            }
+        }
+        .setOnDismissListener { renderLegacyMobileBottomNavigationSelection() }
+        .show()
 }
 
 /** Existing TV rail actions remain Activity-owned navigation wiring. */
@@ -1832,6 +1893,19 @@ internal fun MainActivity.renderLegacyTvDashboardRailSelection() {
         activeTab == 1 -> binding.navRailSeries.isSelected = true
         activeTab == 2 -> binding.navRailFilms.isSelected = true
     }
+}
+
+/** The five mobile destinations are a presentation of the existing navigation state. */
+internal fun MainActivity.renderLegacyMobileBottomNavigationSelection() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    val selected = when {
+        showingDownloads || showingDiscover -> mobileNavItem(R.id.mobileNavMore)
+        showingHome -> mobileNavItem(R.id.mobileNavHome)
+        showingCatchup || activeTab == 0 -> mobileNavItem(R.id.mobileNavLive)
+        activeTab == 1 || activeTab == 2 -> mobileNavItem(R.id.mobileNavCatalog)
+        else -> mobileNavItem(R.id.mobileNavLive)
+    }
+    mobileNavItems().forEach { it.isSelected = it === selected }
 }
 internal fun MainActivity.showRecordingsPanel() {
     AlertDialog.Builder(this)
