@@ -4,4 +4,8 @@
     <string name="play_audio_offset_default">A/V: 0 ms</string>
     <string name="play_audio_offset_label">A/V: %1$d ms</string>
     <string name="play_audio_offset_hint">Positivo atrasa o áudio, negativo o adianta</string>
+    <string name="play_resume_playback_title">Continuar assistindo?</string>
+    <string name="play_resume_message">Continuar de onde parou (%1$s)?</string>
+    <string name="play_resume">Continuar assistindo</string>
+    <string name="play_start_over">Reproduzir do início</string>
 </resources>

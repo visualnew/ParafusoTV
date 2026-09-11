@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Seletor de faixas do player -->
+    <string name="list_no_alt_audio">Nenhuma faixa de áudio alternativa disponível.</string>
+    <string name="list_no_subtitles">Nenhuma legenda disponível.</string>
+</resources>
