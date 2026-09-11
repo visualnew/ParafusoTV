@@ -36,6 +36,7 @@ import com.lumora.data.remote.jellyfin.JellyfinProvider
 import com.lumora.data.remote.plex.PlexProvider
 import com.lumora.model.MediaServerConfig
 import com.lumora.data.update.AppUpdateChecker
+import com.lumora.util.DeviceFormFactor
 import kotlinx.coroutines.*
 import com.lumora.parser.M3uParser
 import com.lumora.model.ProviderType
@@ -412,7 +413,8 @@ internal fun MainActivity.dubCheckBoxRow(title: String, subtitle: String, key: S
  *  [MainActivity.portraitSettingsRailExpanded] can bring it back - mirrors the category
  *  rail's isSidebarCollapsed() exactly. */
 internal fun MainActivity.isSettingsRailCollapsed(): Boolean =
-    if (isPortraitPhone()) !portraitSettingsRailExpanded
+    if (deviceFormFactor == DeviceFormFactor.MOBILE) true
+    else if (isPortraitPhone()) !portraitSettingsRailExpanded
     else prefs.getBoolean(PREF_SETTINGS_RAIL_COLLAPSED, false)
 
 /** Single place that decides the Settings rail's visibility: collapses the rail + divider
@@ -428,15 +430,16 @@ internal fun MainActivity.applySettingsRailVisibility(root: View? = null) {
     // so it passes its dialogView in explicitly. Without the parameter the open-time call
     // hit the null overlay and returned, and the rail only ever collapsed on rotation.
     val view = root ?: activeSettingsOverlay?.view ?: return
+    val mobile = deviceFormFactor == DeviceFormFactor.MOBILE
     val collapsed = isSettingsRailCollapsed()
     view.findViewById<View>(R.id.settingsNavRail).visibility = if (collapsed) View.GONE else View.VISIBLE
     view.findViewById<View>(R.id.settingsNavDivider).visibility = if (collapsed) View.GONE else View.VISIBLE
-    view.findViewById<View>(R.id.settingsExpandRailButton).visibility = if (collapsed) View.VISIBLE else View.GONE
+    view.findViewById<View>(R.id.settingsExpandRailButton).visibility = if (collapsed && !mobile) View.VISIBLE else View.GONE
     val contentScroll = view.findViewById<View>(R.id.settingsContentScroll)
     val reservePx = (56 * resources.displayMetrics.density).toInt()
     contentScroll.setPadding(
         contentScroll.paddingLeft,
-        if (collapsed) reservePx else 0,
+        if (collapsed && !mobile) reservePx else 0,
         contentScroll.paddingRight,
         contentScroll.paddingBottom
     )
@@ -1634,6 +1637,33 @@ internal fun MainActivity.showProviderSettings() {
         // Same reason - appended, not slotted in above Sites where the rail shows it.
         R.id.navTrakt to R.id.paneTrakt
     ).map { (navId, paneId) -> dialogView.findViewById<View>(navId) to dialogView.findViewById<View>(paneId) }
+    val mobileSectionItems = mutableListOf<View>()
+    val mobileSectionLabels = listOf(
+        R.string.providers, R.string.playback, R.string.filters, R.string.privacy,
+        R.string.backup_restore, R.string.epg_sources, R.string.downloads, R.string.plugins,
+        R.string.general, R.string.about, R.string.scraper_settings_title, R.string.trakt
+    )
+    val mobileSectionBar = dialogView.findViewById<View>(R.id.mobileSettingsSectionBar)
+    val mobileSectionContainer = dialogView.findViewById<LinearLayout>(R.id.mobileSettingsSectionItems)
+    if (deviceFormFactor == DeviceFormFactor.MOBILE) {
+        mobileSectionBar.visibility = View.VISIBLE
+        mobileSectionLabels.forEach { label ->
+            mobileSectionContainer.addView(TextView(this).apply {
+                text = getString(label)
+                setTextColor(getColor(R.color.season_chip_text))
+                textSize = 14f
+                gravity = android.view.Gravity.CENTER
+                isClickable = true
+                isFocusable = true
+                setBackgroundResource(R.drawable.bg_season_chip)
+                setPadding(16, 0, 16, 0)
+            }, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                (48 * resources.displayMetrics.density).toInt()
+            ).apply { marginEnd = (8 * resources.displayMetrics.density).toInt() })
+            mobileSectionItems += mobileSectionContainer.getChildAt(mobileSectionContainer.childCount - 1)
+        }
+    }
     wireTraktPane(dialogView)
     // Last section chosen - the rail's re-expand pill refocuses it (mirrors the category
     // rail refocusing the previously selected row).
@@ -1644,6 +1674,7 @@ internal fun MainActivity.showProviderSettings() {
             row.isSelected = i == index
             pane.visibility = if (i == index) View.VISIBLE else View.GONE
         }
+        mobileSectionItems.forEachIndexed { i, item -> item.isSelected = i == index }
         // A plugin's page is not one of these panes and would otherwise stay up underneath
         // whichever section was just chosen. Selecting Plugins itself is handled by the
         // rail's own listener, which opens either the list or a specific plugin's page.
@@ -1655,9 +1686,12 @@ internal fun MainActivity.showProviderSettings() {
         // tree by the same re-render, leaving nothing focused and the remote stuck.
         // With the rail collapsed the row is gone - leave focus where it is (the expand
         // pill) rather than requesting focus on a GONE view, which silently does nothing.
-        if (!isSettingsRailCollapsed()) navRows[index].first.requestFocus()
+        if (deviceFormFactor != DeviceFormFactor.MOBILE && !isSettingsRailCollapsed()) {
+            navRows[index].first.requestFocus()
+        }
     }
     navRows.forEachIndexed { i, (row, _) -> row.setOnClickListener { selectSection(i) } }
+    mobileSectionItems.forEachIndexed { i, item -> item.setOnClickListener { selectSection(i) } }
 
     // Collapse/expand of the rail itself, mirroring the category sidebar: a "Collapse" row
     // at the top of the rail hides it, and the floating pill that replaces it brings it

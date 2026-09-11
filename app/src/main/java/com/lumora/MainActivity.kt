@@ -31,6 +31,7 @@ import android.text.TextPaint
 import android.text.style.MetricAffectingSpan
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.media3.common.Player
@@ -421,6 +422,8 @@ class MainActivity : AppCompatActivity() {
      *  adds a discovered provider - otherwise the new provider is saved but the list stays stale. */
     internal var refreshIptvProviderList: () -> Unit = {}
     internal var activeSearchOverlay: FullScreenOverlay? = null
+    /** The phone-only secondary navigation overlay, kept separate from Settings lifecycle. */
+    internal var activeMobileMoreOverlay: FullScreenOverlay? = null
     /** The Live TV tab's dropdown (Live TV / Catch Up) while it is open, so a pane switch
      *  or a second press on the tab can close it instead of leaving it hanging over the
      *  screen it no longer belongs to. */
@@ -1281,12 +1284,17 @@ class MainActivity : AppCompatActivity() {
         binding.root.postDelayed({ showParafusoProfileChooser(store, profiles) }, 1750L)
     }
 
-    private fun showParafusoProfileChooser(store: ParafusoProfileStore, initial: List<ParafusoProfile>) {
+    internal fun showParafusoProfileChooser(
+        store: ParafusoProfileStore,
+        initial: List<ParafusoProfile>,
+        allowDismiss: Boolean = false
+    ) {
         val dialog = Dialog(this)
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        val mobile = deviceFormFactor == DeviceFormFactor.MOBILE
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(48, 42, 48, 36)
+            setPadding(if (mobile) 24 else 48, 42, if (mobile) 24 else 48, 36)
             setBackgroundResource(com.lumora.R.drawable.bg_parafuso_profile_dialog)
             isFocusable = true
         }
@@ -1294,9 +1302,12 @@ class MainActivity : AppCompatActivity() {
         val sub = TextView(this).apply { text = getString(R.string.profile_subtitle); textSize = 14f; setTextColor(android.graphics.Color.LTGRAY); gravity = android.view.Gravity.CENTER; setPadding(0, 8, 0, 24) }
         root.addView(title)
         root.addView(sub)
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = android.view.Gravity.CENTER }
+        val row = LinearLayout(this).apply {
+            orientation = if (mobile) LinearLayout.VERTICAL else LinearLayout.HORIZONTAL
+            gravity = android.view.Gravity.CENTER
+        }
         initial.forEach { profile ->
-            row.addView(profileCard(profile) { requestProfileActivation(profile, dialog) })
+            row.addView(profileCard(profile, mobile) { requestProfileActivation(profile, dialog) })
         }
         if (initial.size < 4) {
             val add = TextView(this).apply {
@@ -1306,24 +1317,28 @@ class MainActivity : AppCompatActivity() {
                 background = android.graphics.drawable.GradientDrawable().apply { setColor(android.graphics.Color.rgb(35,35,38)); cornerRadius = 22f; setStroke(2, android.graphics.Color.rgb(110,110,115)) }
                 setOnClickListener { showCreateProfileDialog(store, dialog) }
             }
-            row.addView(add, LinearLayout.LayoutParams(190, 170).apply { setMargins(12, 0, 12, 0) })
+            row.addView(add, LinearLayout.LayoutParams(
+                if (mobile) ViewGroup.LayoutParams.MATCH_PARENT else 190,
+                if (mobile) 76 else 170
+            ).apply {
+                if (mobile) setMargins(0, 8, 0, 0) else setMargins(12, 0, 12, 0)
+            })
         }
         root.addView(row)
         dialog.setContentView(root)
-        dialog.setCancelable(false)
+        dialog.setCancelable(allowDismiss)
         dialog.window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         dialog.show()
         dialog.window?.decorView?.post { row.getChildAt(0)?.requestFocus() }
-        dialog.window?.setLayout((resources.displayMetrics.widthPixels * .78f).toInt(), ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * if (mobile) .92f else .78f).toInt(),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
     }
 
-    private fun profileCard(profile: ParafusoProfile, onSelect: () -> Unit): View = TextView(this).apply {
-        text = "🔩\n${profile.name}${if (profile.child) "\n${getString(R.string.profile_child)}" else ""}"
-        textSize = 17f; setTextColor(android.graphics.Color.WHITE); gravity = android.view.Gravity.CENTER
-        isFocusable = true; isClickable = true; setPadding(20, 16, 20, 16)
-        background = android.graphics.drawable.GradientDrawable().apply { setColor(android.graphics.Color.rgb(42,42,46)); cornerRadius = 22f; setStroke(2, android.graphics.Color.rgb(125,125,130)) }
-        setOnClickListener { onSelect() }
-        setOnLongClickListener {
+    private fun profileCard(profile: ParafusoProfile, mobile: Boolean, onSelect: () -> Unit): View {
+        val active = profile.id == profileSession.activeId()
+        val onLongClick = View.OnLongClickListener {
             if (profile.child) {
                 authorizeAdministrativeAction(AuthorizationRequest.ChangeProfilePin) {
                     val pin = EditText(this@MainActivity).apply { hint = "PIN"; inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD; isSingleLine = true }
@@ -1336,7 +1351,60 @@ class MainActivity : AppCompatActivity() {
                 true
             } else false
         }
-    }.also { it.layoutParams = LinearLayout.LayoutParams(190, 170).apply { setMargins(12, 0, 12, 0) } }
+        if (mobile) {
+            return LinearLayout(this).apply {
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                isFocusable = true; isClickable = true
+                setPadding(16, 12, 16, 12)
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    setColor(android.graphics.Color.rgb(42, 42, 46))
+                    cornerRadius = 22f
+                    setStroke(2, if (active) android.graphics.Color.WHITE else android.graphics.Color.rgb(125, 125, 130))
+                }
+                addView(TextView(this@MainActivity).apply {
+                    text = "🔩"
+                    textSize = 28f
+                    gravity = android.view.Gravity.CENTER
+                }, LinearLayout.LayoutParams(52, ViewGroup.LayoutParams.MATCH_PARENT))
+                addView(LinearLayout(this@MainActivity).apply {
+                    orientation = LinearLayout.VERTICAL
+                    addView(TextView(this@MainActivity).apply {
+                        text = profile.name
+                        textSize = 18f
+                        typeface = ResourcesCompat.getFont(this@MainActivity, R.font.inter_semibold)
+                        setTextColor(android.graphics.Color.WHITE)
+                    })
+                    val state = listOfNotNull(
+                        getString(R.string.profile_active).takeIf { active },
+                        getString(R.string.profile_child).takeIf { profile.child }
+                    ).joinToString(" · ")
+                    addView(TextView(this@MainActivity).apply {
+                        text = state
+                        textSize = 13f
+                        setTextColor(android.graphics.Color.LTGRAY)
+                        visibility = if (state.isEmpty()) View.GONE else View.VISIBLE
+                    })
+                }, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+                setOnClickListener { onSelect() }
+                setOnLongClickListener(onLongClick)
+            }.also {
+                it.layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    88
+                ).apply { setMargins(0, 0, 0, 8) }
+            }
+        }
+        return TextView(this).apply {
+            text = "🔩\n${profile.name}${if (profile.child) "\n${getString(R.string.profile_child)}" else ""}"
+            textSize = 17f; setTextColor(android.graphics.Color.WHITE); gravity = android.view.Gravity.CENTER
+            isFocusable = true; isClickable = true; setPadding(20, 16, 20, 16)
+            background = android.graphics.drawable.GradientDrawable().apply { setColor(android.graphics.Color.rgb(42,42,46)); cornerRadius = 22f; setStroke(2, android.graphics.Color.rgb(125,125,130)) }
+            setOnClickListener { onSelect() }
+            setOnLongClickListener(onLongClick)
+        }.also {
+            it.layoutParams = LinearLayout.LayoutParams(190, 170).apply { setMargins(12, 0, 12, 0) }
+        }
+    }
 
     /**
      * Runs only the credential sequence selected by AuthorizationPolicy. In particular,
@@ -1942,6 +2010,7 @@ class MainActivity : AppCompatActivity() {
         if (activeSettingsOverlay != null && openPluginId != null) closeOpenPluginPage?.invoke()
         else if (activeSettingsOverlay != null) activeSettingsOverlay?.dismiss()
         else if (activeSearchOverlay != null) activeSearchOverlay?.dismiss()
+        else if (activeMobileMoreOverlay != null) activeMobileMoreOverlay?.dismiss()
         else if (isPlayerVisible && isPlayerSideMenuOpen()) { closeSideMenu() }
         else if (isPlayerVisible) { hidePlayer(); restoreSearchIfPending() }
         else if (isContentDetailVisible) { hideContentDetail(); restoreSearchIfPending() }
@@ -2129,7 +2198,7 @@ class MainActivity : AppCompatActivity() {
      *  the app. Anything but Home qualifies now that Back unwinds tabs too (see
      *  handleBackNavigation). */
     private fun hasDismissibleScreen(): Boolean =
-        activeSettingsOverlay != null || activeSearchOverlay != null || isPlayerVisible ||
+        activeSettingsOverlay != null || activeSearchOverlay != null || activeMobileMoreOverlay != null || isPlayerVisible ||
             isContentDetailVisible || !showingHome
 
     /** Phone-only edge-swipe-to-back: a left-to-right swipe starting within the leftmost
@@ -2679,7 +2748,9 @@ class MainActivity : AppCompatActivity() {
         // running, so the target must be resolved at show()-time, not construction-time.
         // Resolving it early against a view that's since gone GONE meant requestFocus()
         // silently failed, leaving nothing focused and the d-pad unable to move at all.
-        private val initialFocus: (() -> View?)? = null
+        private val initialFocus: (() -> View?)? = null,
+        /** Root-attached overlays remove only their child view; hiding the root would hide the Activity. */
+        private val hideContainerOnDismiss: Boolean = true
     ) {
         private var dismissListener: (() -> Unit)? = null
         // Late async completions (a Jellyfin Quick Connect sign-in can land up to 120s, Plex
@@ -2723,7 +2794,7 @@ class MainActivity : AppCompatActivity() {
             if (dismissed) return
             dismissed = true
             if (view.parent === container) container.removeView(view)
-            container.visibility = View.GONE
+            if (hideContainerOnDismiss) container.visibility = View.GONE
             dismissListener?.invoke()
         }
     }

@@ -13,6 +13,28 @@
     android:layout_gravity="center_horizontal"
     android:orientation="vertical">
 
+  <!-- Phone presentation of the existing Settings sections. The same panes and handlers are
+       reused; this merely keeps the section picker touch-accessible without shrinking the
+       content column behind the TV navigation rail. -->
+  <HorizontalScrollView
+      android:id="@+id/mobileSettingsSectionBar"
+      android:layout_width="match_parent"
+      android:layout_height="56dp"
+      android:background="@color/canvas_elevated"
+      android:fillViewport="true"
+      android:paddingStart="16dp"
+      android:paddingEnd="16dp"
+      android:scrollbars="none"
+      android:visibility="gone">
+
+      <LinearLayout
+          android:id="@+id/mobileSettingsSectionItems"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:gravity="center_vertical"
+          android:orientation="horizontal" />
+  </HorizontalScrollView>
+
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="0dp"

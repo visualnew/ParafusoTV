@@ -68,6 +68,11 @@
     <string name="tab_live_tv">Live TV</string>
     <string name="mobile_nav_catalog">Catalog</string>
     <string name="mobile_nav_more">More</string>
+    <string name="mobile_more_active_profile">Perfil ativo</string>
+    <string name="mobile_more_favorites">Favoritos</string>
+    <string name="mobile_more_recordings">Gravações</string>
+    <string name="mobile_more_refresh">Atualizar catálogo</string>
+    <string name="mobile_more_no_favorites">Este perfil ainda não tem favoritos.</string>
     <string name="mobile_live_categories">Categories</string>
     <string name="mobile_live_hide_categories">Hide categories</string>
     <string name="mobile_live_channels">Channels</string>
@@ -336,6 +341,7 @@
     <string name="profile_title">Quem está assistindo?</string>
     <string name="profile_subtitle">Escolha um perfil para continuar</string>
     <string name="profile_add">Adicionar perfil</string>
+    <string name="profile_active">Perfil ativo</string>
     <string name="profile_child">Infantil</string>
     <string name="profile_name_hint">Nome do perfil</string>
 

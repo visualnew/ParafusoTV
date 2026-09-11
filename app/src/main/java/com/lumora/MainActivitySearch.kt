@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.*
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.lumora.util.DeviceFormFactor
 import com.lumora.adapter.SearchEpgResult
 import com.lumora.adapter.SearchResultItem
 import com.lumora.adapter.SearchResultsAdapter
@@ -39,19 +40,29 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
     val filtersRow = searchView.findViewById<View>(R.id.searchFiltersRow)
 
     val keyboard = searchView.findViewById<com.lumora.ui.OnScreenKeyboard>(R.id.searchKeyboard)
+    val mobile = deviceFormFactor == DeviceFormFactor.MOBILE
     applyPanelWidth(searchView.findViewById(R.id.searchPanel), R.dimen.search_panel_width)
 
-    // The platform IME on a Fire TV opens full-screen over the app and takes focus with
-    // it, so the query and its results can never be on screen together. Suppress it and
-    // drive the field from the on-screen keyboard instead.
-    input.showSoftInputOnFocus = false
+    // Fire TV's IME takes over the whole screen, so TV retains the on-screen keyboard. A
+    // phone instead exposes the real query field to the Android IME and removes that TV-only
+    // keyboard from the layout, leaving the existing local search, filters and result grid
+    // untouched.
+    input.showSoftInputOnFocus = mobile
+    input.isFocusable = mobile
+    input.isFocusableInTouchMode = mobile
+    input.isCursorVisible = mobile
+    keyboard.visibility = if (mobile) View.GONE else View.VISIBLE
     fun replaceQuery(text: String) = input.setText(text)
-    keyboard.onKey = { ch -> replaceQuery(input.text.toString() + ch) }
-    keyboard.onBackspace = { replaceQuery(input.text.toString().dropLast(1)) }
-    keyboard.onClear = { replaceQuery("") }
-    // A paired bluetooth/USB keyboard can't type into the field any more (it isn't
-    // focusable), so the Activity forwards printable keys and backspace here instead.
-    searchKeyHandler = { ch -> if (ch == null) keyboard.onBackspace?.invoke() else replaceQuery(input.text.toString() + ch) }
+    if (!mobile) {
+        keyboard.onKey = { ch -> replaceQuery(input.text.toString() + ch) }
+        keyboard.onBackspace = { replaceQuery(input.text.toString().dropLast(1)) }
+        keyboard.onClear = { replaceQuery("") }
+        // A paired bluetooth/USB keyboard can't type into the field any more (it isn't
+        // focusable), so the Activity forwards printable keys and backspace here instead.
+        searchKeyHandler = { ch -> if (ch == null) keyboard.onBackspace?.invoke() else replaceQuery(input.text.toString() + ch) }
+    } else {
+        searchKeyHandler = null
+    }
 
     // Fixed span: the grid shares the panel with the keyboard now, so overall screen
     // width no longer describes the space it actually has.
@@ -79,15 +90,15 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
     // key - requestFocus failed silently while the press was consumed). Target the
     // keyboard itself instead: it's focusable, and the next D-pad press enters the
     // keys via normal focus search.
-    resultsAdapter.topRowFocusUpTargetId = R.id.searchKeyboard
+    if (!mobile) resultsAdapter.topRowFocusUpTargetId = R.id.searchKeyboard
     // P0-1: LEFT from the first column must also return to the keyboard - default
     // focus search can't cross out of the RecyclerView into the keyboard.
-    resultsAdapter.leftFocusTarget = keyboard
+    if (!mobile) resultsAdapter.leftFocusTarget = keyboard
     resultsAdapter.posterHeightDimen = R.dimen.search_poster_image_height
     resultsList.adapter = resultsAdapter
     // P2-7: DOWN from the keyboard's bottom row (and the K/L columns with nothing
     // below them) lands on the first result row.
-    keyboard.bottomRowDownTarget = resultsList
+    if (!mobile) keyboard.bottomRowDownTarget = resultsList
 
     var searchRunnable: Runnable? = null
     // One scheduling path for both typing and filter-chip presses: debounce, and stamp
@@ -159,7 +170,7 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
                     // when the search publishes, a debounce plus a query later). The D-pad
                     // then did nothing whatever the user pressed, so a recent search could be
                     // run but never picked from.
-                    keyboard.requestFocus()
+                    if (mobile) input.requestFocus() else keyboard.requestFocus()
                     // Picking a recent search is a request for its results, so land focus on
                     // the first one as soon as there is one to land on rather than making the
                     // user walk back down out of the keyboard.
@@ -170,7 +181,7 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
                 // filters are GONE while the query is short) - route it into the keys.
                 setOnKeyListener { _, keyCode, event ->
                     if (keyCode == android.view.KeyEvent.KEYCODE_DPAD_DOWN && event.action == android.view.KeyEvent.ACTION_DOWN) {
-                        keyboard.requestFocus()
+                        if (mobile) input.requestFocus() else keyboard.requestFocus()
                         true
                     } else false
                 }
@@ -193,7 +204,7 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
         closeButton = searchView.findViewById(R.id.searchCloseButton),
         // P2-3: land on the G key (center of the letter block), not the top-left "1" -
         // a letter is the overwhelmingly likely first key, and G is closest to all of them.
-        initialFocus = { keyboard.firstKey() ?: input }
+        initialFocus = { if (mobile) input else keyboard.firstKey() ?: input }
     )
     // P2-8: keep the tab bar out of reach while search is up - a stray press would
     // dismiss search via selectTab and silently lose the query.
@@ -261,6 +272,13 @@ internal fun MainActivity.showSearchDialog(initialQuery: String? = null) {
     applyStatus()
     if (initialQuery != null) input.setText(initialQuery)
     overlay.show()
+    if (mobile) {
+        input.post {
+            input.requestFocus()
+            val imm = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+            imm.showSoftInput(input, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+        }
+    }
 }
 
 /** Ranks a title's relevance to [query] (lower is better) - exact match first, then

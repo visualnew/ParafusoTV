@@ -3,6 +3,8 @@ package com.lumora
 import android.app.AlertDialog
 import android.content.res.Configuration
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import android.util.TypedValue
 import android.view.Gravity
@@ -1771,26 +1773,99 @@ private fun MainActivity.toggleMobileCatalogCategories() {
     applyMobileCatalogPresentation()
 }
 
-/** A deliberately small bridge to existing actions until the dedicated More surface in 5.5. */
+/** Phone-only secondary navigation. All actions below delegate to their established flows. */
 private fun MainActivity.showMobileMorePanel() {
     if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    if (activeMobileMoreOverlay != null) return
     val moreItem = mobileNavItem(R.id.mobileNavMore)
     mobileNavItems().forEach { it.isSelected = it === moreItem }
-    AlertDialog.Builder(this)
-        .setTitle(R.string.mobile_nav_more)
-        .setItems(arrayOf(
-            getString(R.string.settings),
-            getString(R.string.downloads),
-            getString(R.string.list_refresh_now)
-        )) { _, choice ->
-            when (choice) {
-                0 -> showProviderSettings()
-                1 -> selectDownloads()
-                2 -> binding.btnRefresh.performClick()
-            }
+    setMobileBottomNavigationVisible(false)
+    val moreView = layoutInflater.inflate(R.layout.dialog_mobile_more, null)
+    val basePadding = intArrayOf(
+        moreView.paddingLeft,
+        moreView.paddingTop,
+        moreView.paddingRight,
+        moreView.paddingBottom
+    )
+    ViewCompat.setOnApplyWindowInsetsListener(moreView) { view, windowInsets ->
+        val bars = windowInsets.getInsets(
+            WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+        )
+        view.setPadding(
+            basePadding[0] + bars.left,
+            basePadding[1] + bars.top,
+            basePadding[2] + bars.right,
+            basePadding[3] + bars.bottom
+        )
+        windowInsets
+    }
+    val activeProfile = profileSession.activeProfile()
+    moreView.findViewById<TextView>(R.id.mobileMoreProfileName).text =
+        activeProfile?.name ?: getString(R.string.profile_title)
+    moreView.findViewById<TextView>(R.id.mobileMoreProfileStatus).text = when {
+        activeProfile == null -> ""
+        activeProfile.child -> getString(R.string.profile_child)
+        else -> getString(R.string.mobile_more_active_profile)
+    }
+
+    lateinit var overlay: MainActivity.FullScreenOverlay
+    fun leaveMore(action: () -> Unit) {
+        overlay.dismiss()
+        action()
+    }
+    moreView.findViewById<View>(R.id.mobileMoreProfile).setOnClickListener {
+        leaveMore {
+            showParafusoProfileChooser(
+                ParafusoProfileStore(this),
+                profileSession.ensureDefault(),
+                allowDismiss = true
+            )
         }
-        .setOnDismissListener { renderLegacyMobileBottomNavigationSelection() }
-        .show()
+    }
+    moreView.findViewById<View>(R.id.mobileMoreFavorites).setOnClickListener {
+        leaveMore { showMobileProfileFavorites() }
+    }
+    moreView.findViewById<View>(R.id.mobileMoreDownloads).setOnClickListener {
+        leaveMore { selectDownloads() }
+    }
+    moreView.findViewById<View>(R.id.mobileMoreSettings).setOnClickListener {
+        leaveMore { showProviderSettings() }
+    }
+    moreView.findViewById<View>(R.id.mobileMoreRefresh).setOnClickListener {
+        leaveMore { binding.btnRefresh.performClick() }
+    }
+    moreView.findViewById<View>(R.id.mobileMoreRecordings).setOnClickListener {
+        showRecordingsPanel()
+    }
+    overlay = MainActivity.FullScreenOverlay(
+        binding.root,
+        moreView,
+        closeButton = moreView.findViewById(R.id.mobileMoreCloseButton),
+        initialFocus = { moreView.findViewById(R.id.mobileMoreProfile) },
+        hideContainerOnDismiss = false
+    )
+    overlay.setOnDismissListener {
+        activeMobileMoreOverlay = null
+        setMobileBottomNavigationVisible(true)
+        renderLegacyMobileBottomNavigationSelection()
+        applyStatus()
+    }
+    activeMobileMoreOverlay = overlay
+    applyStatus()
+    overlay.show()
+    ViewCompat.requestApplyInsets(moreView)
+}
+
+/** The Home shelf is the existing cross-media, profile-scoped favourites surface. */
+private fun MainActivity.showMobileProfileFavorites() {
+    selectHome()
+    binding.homeContent.post {
+        val position = homeShelfAdapter.currentList.indexOfFirst {
+            it.title == getString(R.string.category_favourites)
+        }
+        if (position >= 0) binding.homeContent.smoothScrollToPosition(position)
+        else Toast.makeText(this, R.string.mobile_more_no_favorites, Toast.LENGTH_SHORT).show()
+    }
 }
 
 /** Existing TV rail actions remain Activity-owned navigation wiring. */
