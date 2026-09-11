@@ -848,6 +848,7 @@
             android:visibility="gone">
 
             <ImageView
+                android:id="@+id/homeHeroLogo"
                 android:layout_width="54dp"
                 android:layout_height="54dp"
                 android:layout_marginEnd="16dp"

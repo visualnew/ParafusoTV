@@ -1618,6 +1618,40 @@ internal fun MainActivity.showProviderSettings() {
         )
     )
 
+    // These are the same profile-scoped shelf titles toggled by Home's dismiss button.
+    // Continue Watching is deliberately absent: its dismiss action clears playback history.
+    val homePane = dialogView.findViewById<LinearLayout>(R.id.paneHome)
+    val hiddenHomeShelves = getHiddenHomeShelves()
+    listOf(
+        R.string.category_next_up,
+        R.string.category_recently_played,
+        R.string.tab_live_tv,
+        R.string.category_favourites,
+        R.string.films_tab,
+        R.string.series_tab
+    ).forEach { titleRes ->
+        val title = getString(titleRes)
+        homePane.addView(CheckBox(this).apply {
+            text = title
+            setTextColor(getColor(R.color.text_primary))
+            setBackgroundResource(R.drawable.card_surface_background)
+            val hPad = resources.getDimensionPixelSize(R.dimen.settings_gap_l)
+            val vPad = resources.getDimensionPixelSize(R.dimen.settings_row_padding_vertical)
+            setPadding(hPad, vPad, hPad, vPad)
+            stateListAnimator = AnimatorInflater.loadStateListAnimator(this@showProviderSettings, R.animator.focus_scale_flat)
+            isClickable = true
+            isFocusable = true
+            isChecked = title !in hiddenHomeShelves
+            setOnCheckedChangeListener { _, _ -> toggleHiddenHomeShelf(title) }
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = resources.getDimensionPixelSize(R.dimen.settings_gap_m)
+            }
+        })
+    }
+
     // StreamVault-style nav rail: one section visible at a time.
     val navRows = listOf(
         R.id.navProviders to R.id.paneProviders,
@@ -1635,13 +1669,16 @@ internal fun MainActivity.showProviderSettings() {
         // section below it - including the hardcoded selectSection(7) the plugin rail rows use.
         R.id.navSites to R.id.paneSites,
         // Same reason - appended, not slotted in above Sites where the rail shows it.
-        R.id.navTrakt to R.id.paneTrakt
+        R.id.navTrakt to R.id.paneTrakt,
+        // Appended to preserve the existing selectSection() indices above.
+        R.id.navHome to R.id.paneHome
     ).map { (navId, paneId) -> dialogView.findViewById<View>(navId) to dialogView.findViewById<View>(paneId) }
     val mobileSectionItems = mutableListOf<View>()
     val mobileSectionLabels = listOf(
         R.string.providers, R.string.playback, R.string.filters, R.string.privacy,
         R.string.backup_restore, R.string.epg_sources, R.string.downloads, R.string.plugins,
-        R.string.general, R.string.about, R.string.scraper_settings_title, R.string.trakt
+        R.string.general, R.string.about, R.string.scraper_settings_title, R.string.trakt,
+        R.string.settings_home
     )
     val mobileSectionBar = dialogView.findViewById<View>(R.id.mobileSettingsSectionBar)
     val mobileSectionContainer = dialogView.findViewById<LinearLayout>(R.id.mobileSettingsSectionItems)

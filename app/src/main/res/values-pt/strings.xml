@@ -122,6 +122,7 @@
     <string name="providers">Provedores</string>
     <string name="playback">Reprodução</string>
     <string name="general">Geral</string>
+    <string name="settings_home">Tela inicial</string>
     <string name="filters">Filtros</string>
     <string name="privacy">Privacidade</string>
     <string name="downloads">Downloads</string>

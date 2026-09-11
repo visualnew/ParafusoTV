@@ -1958,6 +1958,7 @@ class MainActivity : AppCompatActivity() {
         applySidebarVisibility(lastTabWantsSidebar)
         applySettingsRailVisibility()
         applyChromeWrap()
+        applyMobileHomeHeaderPresentation()
     }
 
     override fun onDestroy() {

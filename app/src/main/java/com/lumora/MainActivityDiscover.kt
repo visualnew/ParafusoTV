@@ -1242,8 +1242,8 @@ private fun MainActivity.buildMobileHomeShelves(): List<ContentShelf> {
             !isAdultCategory(categoryName, group) &&
             !isAdultCategory(item.name)
     }
-    fun addShelf(title: String, items: List<Channel>) {
-        if (items.isNotEmpty() && title !in hidden) shelves.add(ContentShelf(title, items))
+    fun addShelf(title: String, items: List<Channel>, hasMoreItems: Boolean = false) {
+        if (items.isNotEmpty() && title !in hidden) shelves.add(ContentShelf(title, items, hasMoreItems = hasMoreItems))
     }
 
     // Keep the existing priority and sources, but apply the mobile lookup-backed filter once
@@ -1271,11 +1271,15 @@ private fun MainActivity.buildMobileHomeShelves(): List<ContentShelf> {
     // order; Films and Series reuse the catalog's existing newest-first helper. The bounded
     // rows keep a first Home render proportional to the visible content rather than a giant
     // provider list.
-    val liveItems = liveChannels.asSequence()
+    val liveItemsWithOverflow = liveChannels.asSequence()
         .filter(::isAllowedMobileHomeItem)
-        .take(MOBILE_HOME_DISCOVERY_LIMIT)
+        .take(MOBILE_HOME_DISCOVERY_LIMIT + 1)
         .toList()
-    addShelf(getString(R.string.tab_live_tv), liveItems)
+    addShelf(
+        getString(R.string.tab_live_tv),
+        liveItemsWithOverflow.take(MOBILE_HOME_DISCOVERY_LIMIT),
+        hasMoreItems = liveItemsWithOverflow.size > MOBILE_HOME_DISCOVERY_LIMIT
+    )
 
     val favChannelIds = FavoritesStore.getFavoriteChannelIds(this)
     val favIds = FavoritesStore.getFavoriteSeriesIds(this)
@@ -1290,17 +1294,13 @@ private fun MainActivity.buildMobileHomeShelves(): List<ContentShelf> {
         .distinctBy { it.id.ifBlank { it.url } }
     addShelf(getString(R.string.category_favourites), favouriteItems)
 
-    val filmItems = newestByDate(
-        filmList.filter(::isAllowedMobileHomeItem),
-        MOBILE_HOME_DISCOVERY_LIMIT
-    )
-    addShelf(getString(R.string.films_tab), filmItems)
+    val allowedFilms = filmList.filter(::isAllowedMobileHomeItem)
+    val filmItems = newestByDate(allowedFilms, MOBILE_HOME_DISCOVERY_LIMIT)
+    addShelf(getString(R.string.films_tab), filmItems, hasMoreItems = allowedFilms.size > filmItems.size)
 
-    val seriesItems = newestByDate(
-        seriesList.filter(::isAllowedMobileHomeItem),
-        MOBILE_HOME_DISCOVERY_LIMIT
-    )
-    addShelf(getString(R.string.series_tab), seriesItems)
+    val allowedSeries = seriesList.filter(::isAllowedMobileHomeItem)
+    val seriesItems = newestByDate(allowedSeries, MOBILE_HOME_DISCOVERY_LIMIT)
+    addShelf(getString(R.string.series_tab), seriesItems, hasMoreItems = allowedSeries.size > seriesItems.size)
 
     return shelves
 }

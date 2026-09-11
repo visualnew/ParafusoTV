@@ -99,6 +99,11 @@
                     <TextView style="@style/Widget.Lumora.SettingsNavLabel" android:text="@string/general" />
                 </LinearLayout>
 
+                <LinearLayout android:id="@+id/navHome" style="@style/Widget.Lumora.SettingsNavRow" android:background="@drawable/nav_rail_item_glass" android:visibility="gone">
+                    <ImageView android:layout_width="@dimen/settings_nav_icon_size" android:layout_height="@dimen/settings_nav_icon_size" android:src="@drawable/ic_home" android:tint="@color/nav_icon_tint" />
+                    <TextView style="@style/Widget.Lumora.SettingsNavLabel" android:text="@string/settings_home" />
+                </LinearLayout>
+
                 <LinearLayout android:id="@+id/navProviders" style="@style/Widget.Lumora.SettingsNavRow" android:tag="1" android:background="@drawable/nav_rail_item_glass">
                     <ImageView android:layout_width="@dimen/settings_nav_icon_size" android:layout_height="@dimen/settings_nav_icon_size" android:src="@drawable/ic_providers" android:tint="@color/nav_icon_tint" />
                     <TextView style="@style/Widget.Lumora.SettingsNavLabel" android:text="@string/providers" />
@@ -221,6 +226,18 @@
                 android:visibility="gone">
 
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_gap_l" android:text="@string/general" style="@style/TextAppearance.Lumora.SettingsTitle" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/paneHome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_gap_l" android:text="@string/settings_home" style="@style/TextAppearance.Lumora.SettingsTitle" />
             </LinearLayout>
 
             <!-- Pane: Streaming sites (com.lumora.scraper). Rows are built by

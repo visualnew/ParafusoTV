@@ -381,6 +381,36 @@ internal fun MainActivity.submitCategories(categories: List<CategoryFilter>) {
 internal fun MainActivity.isPortraitPhone(): Boolean =
     !isTv && resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
 
+/** Reclaims shelf space on a phone held sideways while restoring the XML dimensions in portrait. */
+internal fun MainActivity.applyMobileHomeHeaderPresentation() {
+    if (deviceFormFactor != DeviceFormFactor.MOBILE) return
+    val compact = !isPortraitPhone()
+    fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
+    binding.homeSearchBar.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        bottomMargin = dp(if (compact) 6 else 10)
+    }
+    binding.homeHero.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+        bottomMargin = dp(if (compact) 6 else 10)
+    }
+    binding.homeHero.setPadding(
+        dp(if (compact) 16 else 20),
+        dp(if (compact) 8 else 16),
+        dp(if (compact) 16 else 20),
+        dp(if (compact) 8 else 16)
+    )
+    binding.homeHeroLogo.updateLayoutParams {
+        width = dp(if (compact) 40 else 54)
+        height = dp(if (compact) 40 else 54)
+    }
+    binding.homeHeroSubtitle.maxLines = if (compact) 1 else 2
+    binding.homeHeroStatus.setPadding(
+        dp(if (compact) 10 else 12),
+        dp(if (compact) 5 else 7),
+        dp(if (compact) 10 else 12),
+        dp(if (compact) 5 else 7)
+    )
+}
+
 /** The chrome pills whose label sits beside their icon, paired with the id of the view that
  *  label lives in - the label itself, except on Live TV where label and Catch Up caret share a
  *  nested group so the caret follows the label when the pill stacks. Settings and Refresh are
@@ -2147,6 +2177,7 @@ internal fun MainActivity.selectHome() {
     val providerReady = hasProviderEnabled()
     binding.homeSearchBar.visibility = if (providerReady) View.VISIBLE else View.GONE
     binding.homeHero.visibility = if (providerReady) View.VISIBLE else View.GONE
+    applyMobileHomeHeaderPresentation()
     if (providerReady) {
         binding.homeHeroTitle.text = getString(R.string.home_hero_title)
         binding.homeHeroSubtitle.text = getString(R.string.home_hero_subtitle)
