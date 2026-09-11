@@ -1326,12 +1326,12 @@ private fun MainActivity.buildTvHomeShelves(): List<ContentShelf> {
 
     val continueItems = buildHomeContinueWatchingItems()
     if (continueItems.isNotEmpty()) {
-        shelves.add(ContentShelf(getString(R.string.category_continue_watching), continueItems))
+        shelves.add(ContentShelf(getString(R.string.category_continue_watching), continueItems, hasMoreItems = false))
     }
 
     val liveItems = liveChannels.filterNot(::isAdultTvCatalogItem)
     if (liveItems.isNotEmpty()) {
-        shelves.add(ContentShelf(getString(R.string.tab_live_tv), liveItems))
+        shelves.add(ContentShelf(getString(R.string.tab_live_tv), liveItems, hasMoreItems = true))
     }
 
     val favouriteChannelIds = FavoritesStore.getFavoriteChannelIds(this)
@@ -1346,20 +1346,22 @@ private fun MainActivity.buildTvHomeShelves(): List<ContentShelf> {
         .filterNot(::isAdultTvCatalogItem)
         .distinctBy { it.id.ifBlank { it.url } }
     if (favouriteItems.isNotEmpty()) {
-        shelves.add(ContentShelf(getString(R.string.category_favourites), favouriteItems))
+        shelves.add(ContentShelf(getString(R.string.category_favourites), favouriteItems, hasMoreItems = false))
     }
 
     // The catalog already has a stable newest-first helper for its VOD shelves. Its default
     // limit of 30 keeps this Home surface responsive without a new query or recommendation
     // system, and filtering happens before limiting so adult-only entries never consume slots.
-    val filmItems = newestByDate(filmList.filterNot(::isAdultTvCatalogItem))
+    val allowedFilms = filmList.filterNot(::isAdultTvCatalogItem)
+    val filmItems = newestByDate(allowedFilms)
     if (filmItems.isNotEmpty()) {
-        shelves.add(ContentShelf(getString(R.string.films_tab), filmItems))
+        shelves.add(ContentShelf(getString(R.string.films_tab), filmItems, hasMoreItems = allowedFilms.size > filmItems.size))
     }
 
-    val seriesItems = newestByDate(seriesList.filterNot(::isAdultTvCatalogItem))
+    val allowedSeries = seriesList.filterNot(::isAdultTvCatalogItem)
+    val seriesItems = newestByDate(allowedSeries)
     if (seriesItems.isNotEmpty()) {
-        shelves.add(ContentShelf(getString(R.string.series_tab), seriesItems))
+        shelves.add(ContentShelf(getString(R.string.series_tab), seriesItems, hasMoreItems = allowedSeries.size > seriesItems.size))
     }
 
     return shelves.filter { it.title !in hidden }

@@ -479,6 +479,9 @@ internal fun MainActivity.showProviderSettings() {
     // visit is not carried into this one.
     if (isPortraitPhone()) portraitSettingsRailExpanded = false
     val dialogView = layoutInflater.inflate(R.layout.activity_settings, null)
+    // Mobile reaches this pane through its section bar; keep the TV rail's new entry out of
+    // the already-approved phone presentation.
+    dialogView.findViewById<View>(R.id.navHome).visibility = if (deviceFormFactor == DeviceFormFactor.TV) View.VISIBLE else View.GONE
     // Deliberately no width cap here. Settings used to be pinned to 660dp and centred on
     // TV, which left a wide band of the tab background down both sides - it read as a
     // floating pop-out rather than a screen, and squeezed the two-pane layout (nav rail
@@ -1622,14 +1625,24 @@ internal fun MainActivity.showProviderSettings() {
     // Continue Watching is deliberately absent: its dismiss action clears playback history.
     val homePane = dialogView.findViewById<LinearLayout>(R.id.paneHome)
     val hiddenHomeShelves = getHiddenHomeShelves()
-    listOf(
-        R.string.category_next_up,
-        R.string.category_recently_played,
-        R.string.tab_live_tv,
-        R.string.category_favourites,
-        R.string.films_tab,
-        R.string.series_tab
-    ).forEach { titleRes ->
+    val homeShelfTitles = if (deviceFormFactor == DeviceFormFactor.TV) {
+        listOf(
+            R.string.tab_live_tv,
+            R.string.category_favourites,
+            R.string.films_tab,
+            R.string.series_tab
+        )
+    } else {
+        listOf(
+            R.string.category_next_up,
+            R.string.category_recently_played,
+            R.string.tab_live_tv,
+            R.string.category_favourites,
+            R.string.films_tab,
+            R.string.series_tab
+        )
+    }
+    homeShelfTitles.forEach { titleRes ->
         val title = getString(titleRes)
         homePane.addView(CheckBox(this).apply {
             text = title

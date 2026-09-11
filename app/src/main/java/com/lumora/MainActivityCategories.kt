@@ -1739,17 +1739,13 @@ private fun MainActivity.mobileNavItems(): List<View> = listOf(
     mobileNavItem(R.id.mobileNavMore)
 )
 
-/** Phone Home owns top-level destinations; shelf grids elsewhere keep their existing See All path. */
+/** Home's real catalog shelves own top-level destinations; other mobile shelves retain their grid. */
 internal fun MainActivity.onMobileHomeSeeAll(shelf: ContentShelf) {
-    if (deviceFormFactor != DeviceFormFactor.MOBILE) {
-        showSeeAll(shelf)
-        return
-    }
     when (shelf.title) {
         getString(R.string.tab_live_tv) -> selectTab(0)
-        getString(R.string.films_tab) -> selectMobileCatalogTab(2)
-        getString(R.string.series_tab) -> selectMobileCatalogTab(1)
-        else -> showSeeAll(shelf)
+        getString(R.string.films_tab) -> if (deviceFormFactor == DeviceFormFactor.MOBILE) selectMobileCatalogTab(2) else selectTab(2)
+        getString(R.string.series_tab) -> if (deviceFormFactor == DeviceFormFactor.MOBILE) selectMobileCatalogTab(1) else selectTab(1)
+        else -> if (deviceFormFactor == DeviceFormFactor.MOBILE) showSeeAll(shelf)
     }
 }
 
@@ -2167,6 +2163,12 @@ internal fun MainActivity.selectHome() {
     binding.discoverContent.visibility = View.GONE
     binding.contentRow.visibility = View.GONE
     binding.homeContent.visibility = View.VISIBLE
+    if (deviceFormFactor == DeviceFormFactor.TV) {
+        // TV shelves scale their focused cards. Keep that rendering inside the scrolling
+        // viewport so it cannot overlap the fixed Home hero above it.
+        binding.homeContent.clipChildren = true
+        binding.homeContent.clipToPadding = true
+    }
     if (deviceFormFactor == DeviceFormFactor.MOBILE) {
         binding.homeContent.clipChildren = true
         binding.homeContent.clipToPadding = true
