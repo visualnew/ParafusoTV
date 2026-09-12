@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.*
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.room.withTransaction
 import com.lumora.adapter.LiveGuideAdapter
 import com.lumora.cache.EpgListCache
 import com.lumora.model.CategoryFilter
@@ -116,9 +117,12 @@ internal fun MainActivity.persistEpgPrograms(channelId: String, programs: List<X
     scope.launch(Dispatchers.IO) {
         runCatching {
             // Replace rather than merge: a re-fetch is the provider's current truth, and
-            // leaving old rows behind would keep a superseded schedule in the guide.
-            database.epgProgramDao().deleteForChannel(channelId)
-            database.epgProgramDao().upsertAll(rows)
+            // leaving old rows behind would keep a superseded schedule in the guide. Keep
+            // delete + insert atomic so an interruption cannot erase the last valid guide.
+            database.withTransaction {
+                database.epgProgramDao().deleteForChannel(channelId)
+                database.epgProgramDao().upsertAll(rows)
+            }
         }
     }
 }
