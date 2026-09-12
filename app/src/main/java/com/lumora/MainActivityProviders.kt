@@ -504,6 +504,10 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
         val combined = mutableListOf<Channel>()
         val errors = mutableListOf<String>()
         val enabledConfigs = IptvProviderStore.load(prefs).filter { it.enabled }
+        // Keep a stable pre-refresh snapshot. Successful providers can replace their own
+        // slice while another source is in flight; a failed source must fall back to what
+        // was known before this global refresh started, not disappear because a sibling won.
+        val catalogBeforeRefresh = allChannels.toList()
         if (!uiPainted && enabledConfigs.isNotEmpty()) {
             setStatus(
                 if (enabledConfigs.size == 1) getString(R.string.plug_connecting_to, enabledConfigs.first().name)
@@ -574,35 +578,34 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
                 config to result
             }
         }.awaitAll()
-        // Enabled ids are re-read here rather than reusing the pre-loop snapshot: toggling
-        // a provider off mid-refresh drops its id from this set, so the channels it just
-        // fetched can't slip back into the catalog. Items with no sourceProviderId
-        // (Jellyfin/Plex/anime) always pass.
-        val enabledProviderIds = IptvProviderStore.load(prefs).filter { it.enabled }.map { it.id }.toSet()
+        // Re-read complete configs rather than just enabled ids. Besides removal/toggle,
+        // this rejects a response from an old URL/credential/gate configuration that was
+        // edited while its request was in flight.
+        val currentProviderConfigs = IptvProviderStore.load(prefs)
         val refreshStamp = System.currentTimeMillis()
         for ((config, result) in fetchResults) {
+            if (!isCurrentEnabledProviderConfig(config, currentProviderConfigs)) continue
             when (result) {
                 is FetchResult.Success -> {
-                    combined += result.channels.filter { it.sourceProviderId == null || it.sourceProviderId in enabledProviderIds }
+                    combined += result.channels.filter { it.sourceProviderId == config.id }
                     // Only this provider's fetch can move its success time/count. A successful
                     // empty catalog is still a valid result; a different provider's combined
                     // catalog is never used as this source's count.
-                    if (config.id in enabledProviderIds) {
-                        IptvProviderMetaStore.saveSuccess(
-                            prefs, config.id, result.channels.count { it.sourceProviderId == config.id }, refreshStamp,
-                            result.xtreamAccount?.expirySeconds, result.xtreamAccount?.isTrial ?: false,
-                            xtreamAuthenticated = result.xtreamAccount != null
-                        )
-                    }
+                    IptvProviderMetaStore.saveSuccess(
+                        prefs, config.id, result.channels.count { it.sourceProviderId == config.id }, refreshStamp,
+                        result.xtreamAccount?.expirySeconds, result.xtreamAccount?.isTrial ?: false,
+                        xtreamAuthenticated = result.xtreamAccount != null
+                    )
                 }
                 is FetchResult.Failure -> {
                     // A Stalker portal that failed/timed out on its VOD/series half still
                     // delivered its live channels through the partial merge - keep them
-                    // rather than letting the final replace wipe them off screen. Skipped
-                    // when the provider was toggled off mid-load (same gate as Success).
-                    if (config.id in partialMergedIds && config.id in enabledProviderIds) {
-                        combined += allChannels.filter { it.sourceProviderId == config.id }
-                    }
+                    // rather than letting the final replace wipe them off screen. Every other
+                    // failed provider keeps its last full slice from before this refresh.
+                    val source = if (config.id in partialMergedIds) allChannels else catalogBeforeRefresh
+                    combined += retainedProviderSliceForGlobalFailure(
+                        source, config, currentProviderConfigs, isVodDisabled()
+                    )
                     errors += "${config.name}: ${result.message}"
                     IptvProviderMetaStore.saveFailure(
                         prefs, config.id, result.message, result.authenticationFailed,
@@ -779,6 +782,35 @@ internal fun MainActivity.refreshConfiguredProvider(providerId: String) {
  *  the established aggregation pipeline remains responsible for those policies. */
 internal fun replaceProviderCatalog(current: List<Channel>, providerId: String, replacement: List<Channel>): List<Channel> =
     current.filterNot { it.sourceProviderId == providerId } + replacement.filter { it.sourceProviderId == providerId }
+
+/** True only while the configuration that started a global fetch is still enabled and unchanged. */
+internal fun isCurrentEnabledProviderConfig(
+    requested: IptvProviderConfig,
+    currentConfigs: List<IptvProviderConfig>
+): Boolean = currentConfigs.firstOrNull { it.id == requested.id && it.enabled } == requested
+
+/**
+ * Last known channels for one failed global-refresh source.
+ *
+ * The current configuration must still equal the configuration that started the request. This
+ * prevents a removed, disabled, or edited provider from returning through the previous catalog.
+ * Gates are checked again because the retained items are old provider data, not a fresh fetch.
+ */
+internal fun retainedProviderSliceForGlobalFailure(
+    previousCatalog: List<Channel>,
+    requested: IptvProviderConfig,
+    currentConfigs: List<IptvProviderConfig>,
+    vodDisabled: Boolean
+): List<Channel> {
+    if (!isCurrentEnabledProviderConfig(requested, currentConfigs)) return emptyList()
+    return previousCatalog.filter { channel ->
+        channel.sourceProviderId == requested.id && when (channel.mediaType) {
+            MediaType.LIVE -> requested.liveEnabled
+            MediaType.MOVIE -> !vodDisabled && requested.moviesEnabled
+            MediaType.SERIES -> !vodDisabled && requested.seriesEnabled
+        }
+    }
+}
 
 /** [onLive] fires with the live channels alone as soon as they land, before VOD/series are
  *  even requested - a portal with tens of thousands of live channels plus a large VOD/series

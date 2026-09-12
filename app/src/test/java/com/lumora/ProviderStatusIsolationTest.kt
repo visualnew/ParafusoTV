@@ -3,6 +3,8 @@ package com.lumora
 import android.content.SharedPreferences
 import com.lumora.data.IptvProviderMetaStore
 import com.lumora.model.Channel
+import com.lumora.model.IptvProviderConfig
+import com.lumora.model.MediaType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -85,6 +87,32 @@ class ProviderStatusIsolationTest {
         assertEquals(listOf("second", "first-new"), result.map { it.id })
         assertEquals("second", result.first().sourceProviderId)
         assertEquals("first", result.last().sourceProviderId)
+    }
+
+    @Test
+    fun `global failure retains only the unchanged enabled providers gated prior slice`() {
+        val providerA = IptvProviderConfig(id = "a", type = "xtream", name = "A", moviesEnabled = false)
+        val providerB = IptvProviderConfig(id = "b", type = "m3u", name = "B")
+        val oldALive = channel("a-live", "a")
+        val oldAMovie = channel("a-movie", "a").copy(mediaType = MediaType.MOVIE)
+        val oldB = channel("b-old", "b")
+        val newB = channel("b-new", "b")
+
+        val retainedA = retainedProviderSliceForGlobalFailure(
+            listOf(oldALive, oldAMovie, oldB), providerA, listOf(providerA, providerB), vodDisabled = false
+        )
+        val merged = retainedA + listOf(newB)
+
+        assertEquals(listOf("a-live", "b-new"), merged.map { it.id })
+        assertTrue(retainedProviderSliceForGlobalFailure(
+            listOf(oldALive), providerA, listOf(providerB), vodDisabled = false
+        ).isEmpty())
+        assertTrue(retainedProviderSliceForGlobalFailure(
+            listOf(oldALive), providerA, listOf(providerA.copy(enabled = false), providerB), vodDisabled = false
+        ).isEmpty())
+        assertTrue(retainedProviderSliceForGlobalFailure(
+            listOf(oldALive), providerA, listOf(providerA.copy(url = "https://new.example"), providerB), vodDisabled = false
+        ).isEmpty())
     }
 
     private fun channel(id: String, providerId: String) =
