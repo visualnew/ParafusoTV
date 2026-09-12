@@ -67,6 +67,9 @@
     <string name="parafuso_refresh_now">Atualizar agora</string>
     <string name="parafuso_provider_active">ATIVA</string>
     <string name="parafuso_provider_disabled">DESATIVADA</string>
+    <string name="parafuso_provider_auth_failed">ACCESS FAILED</string>
+    <string name="parafuso_provider_error">ERROR</string>
+    <string name="parafuso_provider_error_detail">Error: %1$s</string>
     <string name="parafuso_provider_never_updated">Ainda não atualizada</string>
     <string name="parafuso_provider_meta">%1$d itens • Atualizada %2$s</string>
     <string name="parafuso_provider_meta_empty">Nenhum item salvo • Ainda não atualizada</string>

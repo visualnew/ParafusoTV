@@ -1162,18 +1162,31 @@ internal fun MainActivity.showProviderSettings() {
                 else -> getString(R.string.provider_type_m3u)
             }
             row.findViewById<TextView>(R.id.rowDetail).text = getString(R.string.sett_provider_row_detail, typeLabel, cfg.url ?: "")
-            val status = row.findViewById<TextView>(R.id.rowStatus)
-            status.text = if (cfg.enabled) getString(R.string.parafuso_provider_active) else getString(R.string.parafuso_provider_disabled)
             val meta = IptvProviderMetaStore.get(prefs, cfg.id)
+            val status = row.findViewById<TextView>(R.id.rowStatus)
+            status.text = when {
+                !cfg.enabled -> getString(R.string.parafuso_provider_disabled)
+                meta.authenticationFailed -> getString(R.string.parafuso_provider_auth_failed)
+                meta.lastError != null -> getString(R.string.parafuso_provider_error)
+                else -> getString(R.string.parafuso_provider_active)
+            }
             val visibleCount = allChannels.count { it.sourceProviderId == cfg.id }
             val count = if (meta.itemCount > 0) meta.itemCount else visibleCount
             val updated = meta.refreshedAt.takeIf { it > 0L }
                 ?.let { SimpleDateFormat("dd/MM HH:mm", Locale.getDefault()).format(Date(it)) }
-            row.findViewById<TextView>(R.id.rowMeta).text = if (updated != null)
+            val baseMeta = if (updated != null)
                 getString(R.string.parafuso_provider_meta, count, updated)
             else if (count > 0)
                 getString(R.string.parafuso_provider_meta, count, getString(R.string.parafuso_provider_never_updated))
             else getString(R.string.parafuso_provider_meta_empty)
+            val expiry = if (cfg.type == "xtream" && !meta.authenticationFailed) {
+                formatSubscriptionStatus(meta.xtreamExpirySeconds, meta.xtreamIsTrial)
+            } else null
+            row.findViewById<TextView>(R.id.rowMeta).text = listOfNotNull(
+                baseMeta,
+                expiry,
+                meta.lastError?.let { getString(R.string.parafuso_provider_error_detail, it) }
+            ).joinToString(" • ")
 
             row.findViewById<View>(R.id.rowUpButton).apply {
                 isEnabled = index > 0
@@ -1203,7 +1216,7 @@ internal fun MainActivity.showProviderSettings() {
             }
             row.findViewById<View>(R.id.rowRefreshButton).setOnClickListener {
                 Toast.makeText(this, getString(R.string.parafuso_provider_refreshing, cfg.name), Toast.LENGTH_SHORT).show()
-                loadAllConfiguredProviders(forceRefresh = true)
+                refreshConfiguredProvider(cfg.id)
             }
             row.findViewById<View>(R.id.rowEditButton).setOnClickListener { openIptvForm(cfg) }
             row.findViewById<View>(R.id.rowRemoveButton).setOnClickListener {
@@ -1492,9 +1505,13 @@ internal fun MainActivity.showProviderSettings() {
     // the form was opened on (openJellyfinEditForm), and any number can be configured.
 
     val subscriptionStatus = dialogView.findViewById<TextView>(R.id.settingsSubscriptionStatus)
-    val expDate = prefs.getString("xtream_exp_date", null)?.toLongOrNull()
-    val isTrial = prefs.getBoolean("xtream_is_trial", false)
-    formatSubscriptionStatus(expDate, isTrial)?.let { status ->
+    val xtreamConfigs = IptvProviderStore.load(prefs).filter { it.type == "xtream" }
+    IptvProviderMetaStore.migrateLegacyXtreamStatus(prefs, xtreamConfigs.map { it.id })
+    // This pre-existing dialog-level line can only describe one account truthfully. Keep it
+    // for a single Xtream account (including a migrated legacy account); with several, each
+    // account's own row is authoritative and the old global key is intentionally not shown.
+    val singleXtreamMeta = xtreamConfigs.singleOrNull()?.let { IptvProviderMetaStore.get(prefs, it.id) }
+    formatSubscriptionStatus(singleXtreamMeta?.xtreamExpirySeconds, singleXtreamMeta?.xtreamIsTrial ?: false)?.let { status ->
         subscriptionStatus.text = status
         subscriptionStatus.setTextColor(getColor(if (status.startsWith("⚠")) R.color.live_red else R.color.success_green))
         subscriptionStatus.visibility = View.VISIBLE

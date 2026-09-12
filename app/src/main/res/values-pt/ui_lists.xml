@@ -3,4 +3,7 @@
     <!-- Seletor de faixas do player -->
     <string name="list_no_alt_audio">Nenhuma faixa de áudio alternativa disponível.</string>
     <string name="list_no_subtitles">Nenhuma legenda disponível.</string>
+    <string name="parafuso_provider_auth_failed">FALHA DE ACESSO</string>
+    <string name="parafuso_provider_error">ERRO</string>
+    <string name="parafuso_provider_error_detail">Erro: %1$s</string>
 </resources>

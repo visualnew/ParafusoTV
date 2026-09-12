@@ -2810,6 +2810,20 @@ class MainActivity : AppCompatActivity() {
  *  per-backend fetches now live in sibling files (MainActivityProviders/Jellyfin) and every
  *  one of them returns it. */
 internal sealed class FetchResult {
-    data class Success(val channels: List<Channel>) : FetchResult()
-    data class Failure(val message: String) : FetchResult()
+    data class Success(
+        val channels: List<Channel>,
+        val xtreamAccount: XtreamAccountStatus? = null
+    ) : FetchResult()
+    data class Failure(
+        val message: String,
+        val authenticationFailed: Boolean = false,
+        val xtreamAccount: XtreamAccountStatus? = null
+    ) : FetchResult()
 }
+
+/** Authentication data returned by an Xtream fetch, kept with that fetch until it can be
+ *  persisted under its owning IptvProviderConfig id. */
+internal data class XtreamAccountStatus(
+    val expirySeconds: Long?,
+    val isTrial: Boolean
+)

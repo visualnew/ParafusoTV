@@ -245,6 +245,9 @@ dependencies {
     // Tests
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    // IptvProviderMetaStore uses Android's org.json at runtime; the JVM tests need the
+    // matching implementation rather than Android's non-functional method stubs.
+    testImplementation("org.json:json:20240303")
     androidTestImplementation("androidx.room:room-testing:2.6.1")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
 }

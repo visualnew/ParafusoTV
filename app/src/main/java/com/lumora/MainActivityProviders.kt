@@ -434,7 +434,9 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
     // Raised for the cached path too: reading and re-deriving a big catalog still takes
     // a few seconds, and with no status up the app just looks frozen.
     setStatus(getString(R.string.loading), visible = true)
-    xtreamProviderConfigs = IptvProviderStore.load(prefs).filter { it.enabled && it.type == "xtream" }.associateBy { it.id }
+    val configuredProviders = IptvProviderStore.load(prefs)
+    IptvProviderMetaStore.migrateLegacyXtreamStatus(prefs, configuredProviders.filter { it.type == "xtream" }.map { it.id })
+    xtreamProviderConfigs = configuredProviders.filter { it.enabled && it.type == "xtream" }.associateBy { it.id }
     // Every type, not just Xtream, and regardless of enabled state - a cached catalog can
     // still contain items from a provider that's since been switched off, and their chips
     // should still say where they came from.
@@ -501,8 +503,6 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
 
         val combined = mutableListOf<Channel>()
         val errors = mutableListOf<String>()
-        var expiryText: String? = null
-
         val enabledConfigs = IptvProviderStore.load(prefs).filter { it.enabled }
         if (!uiPainted && enabledConfigs.isNotEmpty()) {
             setStatus(
@@ -557,7 +557,7 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
             async {
                 val result = withTimeoutOrNull(PROVIDER_FETCH_TIMEOUT_MS) {
                     when (config.type) {
-                        "xtream" -> fetchXtreamChannels(config) { expiryText = it }
+                        "xtream" -> fetchXtreamChannels(config)
                         "stalker" -> fetchStalkerChannels(config) { live ->
                             partialMergedIds += config.id
                             mergeProviderPartial(config.id, live)
@@ -579,10 +579,22 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
         // fetched can't slip back into the catalog. Items with no sourceProviderId
         // (Jellyfin/Plex/anime) always pass.
         val enabledProviderIds = IptvProviderStore.load(prefs).filter { it.enabled }.map { it.id }.toSet()
+        val refreshStamp = System.currentTimeMillis()
         for ((config, result) in fetchResults) {
             when (result) {
-                is FetchResult.Success ->
+                is FetchResult.Success -> {
                     combined += result.channels.filter { it.sourceProviderId == null || it.sourceProviderId in enabledProviderIds }
+                    // Only this provider's fetch can move its success time/count. A successful
+                    // empty catalog is still a valid result; a different provider's combined
+                    // catalog is never used as this source's count.
+                    if (config.id in enabledProviderIds) {
+                        IptvProviderMetaStore.saveSuccess(
+                            prefs, config.id, result.channels.count { it.sourceProviderId == config.id }, refreshStamp,
+                            result.xtreamAccount?.expirySeconds, result.xtreamAccount?.isTrial ?: false,
+                            xtreamAuthenticated = result.xtreamAccount != null
+                        )
+                    }
+                }
                 is FetchResult.Failure -> {
                     // A Stalker portal that failed/timed out on its VOD/series half still
                     // delivered its live channels through the partial merge - keep them
@@ -592,6 +604,11 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
                         combined += allChannels.filter { it.sourceProviderId == config.id }
                     }
                     errors += "${config.name}: ${result.message}"
+                    IptvProviderMetaStore.saveFailure(
+                        prefs, config.id, result.message, result.authenticationFailed,
+                        result.xtreamAccount?.expirySeconds, result.xtreamAccount?.isTrial ?: false,
+                        xtreamAuthenticated = result.xtreamAccount != null
+                    )
                 }
             }
         }
@@ -627,6 +644,9 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
                 allChannels = fallback
                 filmsSeriesDeriveJob?.cancel()
             }
+            // Failure metadata was updated above; repaint the manager even when no provider
+            // returned a catalog so the failed source does not keep looking successful.
+            refreshIptvProviderList.invoke()
             // classifyAndShow() has to run even when nothing above changed allChannels -
             // its own hasContent check also asks hasProviderlessSource(), and skipping this
             // call left a plugin-only setup (no IPTV/Jellyfin channels, empty/no disk cache)
@@ -641,13 +661,6 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
         }
 
         allChannels = combined
-        // Persist per-provider counts for the Settings manager. These are counts of the
-        // logical catalog items currently owned by each IPTV provider, not a new network call.
-        val refreshStamp = System.currentTimeMillis()
-        IptvProviderStore.load(prefs).forEach { cfg ->
-            val count = combined.count { it.sourceProviderId == cfg.id }
-            IptvProviderMetaStore.save(prefs, cfg.id, count, refreshStamp)
-        }
         refreshIptvProviderList.invoke()
         filmsSeriesDeriveJob?.cancel()
         classifyAndShow(preserveUi = shouldPreserveUiOnLoad())
@@ -669,7 +682,6 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
             }
         } else {
             val summary = getString(R.string.plug_item_count, combined.size) +
-                (expiryText?.let { "  ·  $it" } ?: "") +
                 (errors.takeIf { it.isNotEmpty() }?.let { "  ·  ⚠ " + it.joinToString(", ") } ?: "")
             setStatus(summary, visible = true)
             // A refresh over existing content can't use the status row (suppressed while a
@@ -682,6 +694,91 @@ internal fun MainActivity.loadAllConfiguredProviders(forceRefresh: Boolean = fal
         }
     }
 }
+
+/** Re-fetches one configured IPTV source without asking unrelated sources for their catalog
+ *  again. The replacement is scoped by Channel.sourceProviderId, so an error leaves the last
+ *  good entries from this source and every other source exactly as they were. */
+internal fun MainActivity.refreshConfiguredProvider(providerId: String) {
+    val previousLoad = providerLoadJob
+    providerLoadJob = scope.launch {
+        previousLoad?.cancelAndJoin()
+        val config = IptvProviderStore.load(prefs).firstOrNull { it.id == providerId && it.enabled }
+            ?: return@launch
+        setStatus(getString(R.string.parafuso_provider_refreshing, config.name), visible = true)
+        val result = withTimeoutOrNull(PROVIDER_FETCH_TIMEOUT_MS) {
+            when (config.type) {
+                "xtream" -> fetchXtreamChannels(config)
+                // The normal all-provider path paints Stalker's live half early. For a single
+                // refresh, wait for the full result so a later VOD failure cannot replace this
+                // provider's valid cached catalog with only its live entries.
+                "stalker" -> fetchStalkerChannels(config) { }
+                else -> fetchM3uChannels(config)
+            }
+        } ?: FetchResult.Failure("timed out")
+
+        // A source may have been disabled, edited, or removed while its request was in flight.
+        // IptvProviderConfig is a data class, so equality covers every connection and gate
+        // field used by this fetch. Do not let an old URL/credential response alter the new
+        // configuration's catalog or status.
+        val current = IptvProviderStore.load(prefs).firstOrNull { it.id == providerId && it.enabled }
+        if (current != config) {
+            setStatus("", visible = false)
+            return@launch
+        }
+
+        when (result) {
+            is FetchResult.Success -> {
+                val replacement = result.channels.filter { it.sourceProviderId == providerId }
+                // Settings can be opened before the initial cache paint completes. Hydrate the
+                // in-memory snapshot in that narrow case so refreshing one row cannot turn a
+                // persisted multi-provider catalog into just that row's result. Apply the same
+                // ownership/gate checks used by a normal cache load, including the enabled-id
+                // check that prevents a removed source from returning through the cache.
+                val currentCatalog = if (allChannels.isNotEmpty()) allChannels else {
+                    val configs = IptvProviderStore.load(prefs)
+                    val servers = mediaServers()
+                    val enabledIds = (configs.filter { it.enabled }.map { it.id } + servers.filter { it.enabled }.map { it.id }).toSet()
+                    withContext(Dispatchers.IO) { ChannelCache.load(this@refreshConfiguredProvider) }
+                        .orEmpty()
+                        .filter { it.sourceProviderId == null || it.sourceProviderId in enabledIds }
+                        .filter { isTypeAllowed(it, configs, servers) }
+                        .let { dropDisabledPluginContent(it) }
+                }
+                allChannels = replaceProviderCatalog(currentCatalog, providerId, replacement)
+                IptvProviderMetaStore.saveSuccess(
+                    prefs, providerId, replacement.size,
+                    xtreamExpirySeconds = result.xtreamAccount?.expirySeconds,
+                    xtreamIsTrial = result.xtreamAccount?.isTrial ?: false,
+                    xtreamAuthenticated = result.xtreamAccount != null
+                )
+                refreshIptvProviderList.invoke()
+                filmsSeriesDeriveJob?.cancel()
+                classifyAndShow(preserveUi = shouldPreserveUiOnLoad())
+                persistCatalog(allChannels)
+                setStatus(getString(R.string.plug_item_count, replacement.size), visible = true)
+                if (binding.statusRow.visibility != View.VISIBLE) {
+                    Toast.makeText(this@refreshConfiguredProvider, getString(R.string.plug_item_count, replacement.size), Toast.LENGTH_SHORT).show()
+                }
+                mainHandler.postDelayed({ setStatus("", visible = false) }, 4000)
+            }
+            is FetchResult.Failure -> {
+                IptvProviderMetaStore.saveFailure(
+                    prefs, providerId, result.message, result.authenticationFailed,
+                    result.xtreamAccount?.expirySeconds, result.xtreamAccount?.isTrial ?: false,
+                    xtreamAuthenticated = result.xtreamAccount != null
+                )
+                refreshIptvProviderList.invoke()
+                setStatus("", visible = false)
+                Toast.makeText(this@refreshConfiguredProvider, "${config.name}: ${result.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+}
+
+/** Replaces only one source's catalog slice. This deliberately does not dedupe or re-order:
+ *  the established aggregation pipeline remains responsible for those policies. */
+internal fun replaceProviderCatalog(current: List<Channel>, providerId: String, replacement: List<Channel>): List<Channel> =
+    current.filterNot { it.sourceProviderId == providerId } + replacement.filter { it.sourceProviderId == providerId }
 
 /** [onLive] fires with the live channels alone as soon as they land, before VOD/series are
  *  even requested - a portal with tens of thousands of live channels plus a large VOD/series
@@ -780,7 +877,8 @@ internal suspend fun MainActivity.fetchM3uChannels(config: IptvProviderConfig): 
     }
 }
 
-internal suspend fun MainActivity.fetchXtreamChannels(config: IptvProviderConfig, onExpiry: (String?) -> Unit): FetchResult {
+internal suspend fun MainActivity.fetchXtreamChannels(config: IptvProviderConfig): FetchResult {
+    var authenticatedAccount: XtreamAccountStatus? = null
     return try {
         val xtreamProvider = Provider(
             name = config.name, type = ProviderType.XTREAM,
@@ -789,8 +887,11 @@ internal suspend fun MainActivity.fetchXtreamChannels(config: IptvProviderConfig
         )
         val client = XtreamClient(BaseApplication.instance.okHttpClient)
         val authResult = withContext(Dispatchers.IO) { client.authenticate(xtreamProvider) }
-        val auth = authResult.getOrElse { return FetchResult.Failure(it.message?.take(60) ?: "auth error") }
-        if (!auth.valid) return FetchResult.Failure("auth failed - check server URL and credentials")
+        val auth = authResult.getOrElse {
+            return FetchResult.Failure(it.message?.take(60) ?: "auth error", authenticationFailed = true)
+        }
+        if (!auth.valid) return FetchResult.Failure("auth failed - check server URL and credentials", authenticationFailed = true)
+        authenticatedAccount = XtreamAccountStatus(auth.expDateSeconds, auth.isTrial)
 
         val live: List<Channel>
         val films: List<Channel>
@@ -833,20 +934,16 @@ internal suspend fun MainActivity.fetchXtreamChannels(config: IptvProviderConfig
             series = seriesDeferred?.await()?.map { withCategory(it, seriesCatNames, "uncat_series") } ?: emptyList()
         }
 
-        // Persist the subscription expiry so Settings' "Active until / Expired" line can
-        // display - xtream_exp_date / xtream_is_trial were never written anywhere before,
-        // so the Settings read always came back empty. putString(key, null) removes the
-        // key, which drops a stale expiry when the account stops reporting one.
-        prefs.edit()
-            .putString("xtream_exp_date", auth.expDateSeconds?.toString())
-            .putBoolean("xtream_is_trial", auth.isTrial)
-            .apply()
-        onExpiry(formatSubscriptionStatus(auth.expDateSeconds, auth.isTrial))
-        FetchResult.Success(live + films + series)
+        // Carry account data with the result. The caller persists it under config.id once it
+        // knows this specific refresh succeeded; writing the old global Xtream keys here made
+        // concurrent accounts overwrite each other's expiry.
+        FetchResult.Success(live + films + series, authenticatedAccount)
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        FetchResult.Failure(e.message?.take(60) ?: "error")
+        // Authentication may have succeeded even if a later catalog request failed. Preserve
+        // that per-account fact alongside the error without advancing its catalog success.
+        FetchResult.Failure(e.message?.take(60) ?: "error", xtreamAccount = authenticatedAccount)
     }
 }
 
