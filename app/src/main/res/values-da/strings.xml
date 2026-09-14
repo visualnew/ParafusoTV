@@ -93,10 +93,10 @@
 
     <!-- Vises på bilskærmen i starten af hver session og i Indstillinger på telefonen.
          Kort nok til, at bilens skærm ikke klipper midt i en sætning. -->
-    <string name="car_disclaimer">Se ikke video, mens du kører.\n\nVideo afspilles kun, mens Lumora kan bekræfte, at bilen holder stille. Ved enhver bevægelse slukkes billedet, og lyden fortsætter.\n\nLeveres «som den er», uden garanti og uden ansvar for tab, skade, bøde eller svigt i disse kontroller. Brug den i overensstemmelse med loven.</string>
+    <string name="car_disclaimer">Se ikke video, mens du kører.\n\nVideo afspilles kun, mens ParafusoTV kan bekræfte, at bilen holder stille. Ved enhver bevægelse slukkes billedet, og lyden fortsætter.\n\nLeveres «som den er», uden garanti og uden ansvar for tab, skade, bøde eller svigt i disse kontroller. Brug den i overensstemmelse med loven.</string>
 
     <string name="legal_notice_title">Juridisk og sikkerhedsmæssig meddelelse</string>
-    <string name="legal_notice">Lumora leveres gratis, «som den er» og uden garantier af nogen art, hverken udtrykte eller underforståede, herunder, men ikke begrænset til garantier om salgbarhed, egnethed til et bestemt formål og ikke-krænkelse af tredjeparters rettigheder.\n\nI det omfang loven tillader, påtager forfatterne og bidragyderne sig intet ansvar for krav, skader, tab eller andre forpligtelser, der opstår fra eller i forbindelse med appen eller brugen af den, herunder, men ikke begrænset til: tab af eller skade på data eller enheder, afbrydelse af tjenesten, nedbrud eller fejl i appen, gebyrer opkrævet af dit netværk eller dine indholdsudbydere, eller enhver bøde, forelæg eller retsforfølgelse som følge af din brug af appen.\n\nKørsel: videoafspilning i et køretøj er kun beregnet til et stillestående køretøj eller en passagerskærm. At se video, mens man kører, er ulovligt i de fleste jurisdiktioner. Lumora forsøger at registrere bevægelse og deaktivere videoen automatisk, men denne registrering afhænger af hardware, tilladelser og signaler uden for appens kontrol og kan fejle eller være utilgængelig. Du må ikke stole på den. Føreren er alene ansvarlig for at overholde alle gældende færdselslove.\n\nIndhold: Lumora er en afspiller. Den hoster, leverer og indekserer ikke noget eget indhold. Alle streams, kataloger og metadata kommer fra tjenester og udbydere, du selv konfigurerer, og du er alene ansvarlig for at have de rettigheder eller abonnementer, der kræves for at få adgang til dem, og for at overholde vilkårene for disse tjenester og lovene i dit land.\n\nDistribution: denne app distribueres ikke via Google Play og er ikke tilknyttet, godkendt eller certificeret af Google. Android, Android Auto og Google Cast er varemærker tilhørende Google LLC.</string>
+    <string name="legal_notice">ParafusoTV leveres gratis, «som den er» og uden garantier af nogen art, hverken udtrykte eller underforståede, herunder, men ikke begrænset til garantier om salgbarhed, egnethed til et bestemt formål og ikke-krænkelse af tredjeparters rettigheder.\n\nI det omfang loven tillader, påtager forfatterne og bidragyderne sig intet ansvar for krav, skader, tab eller andre forpligtelser, der opstår fra eller i forbindelse med appen eller brugen af den, herunder, men ikke begrænset til: tab af eller skade på data eller enheder, afbrydelse af tjenesten, nedbrud eller fejl i appen, gebyrer opkrævet af dit netværk eller dine indholdsudbydere, eller enhver bøde, forelæg eller retsforfølgelse som følge af din brug af appen.\n\nKørsel: videoafspilning i et køretøj er kun beregnet til et stillestående køretøj eller en passagerskærm. At se video, mens man kører, er ulovligt i de fleste jurisdiktioner. ParafusoTV forsøger at registrere bevægelse og deaktivere videoen automatisk, men denne registrering afhænger af hardware, tilladelser og signaler uden for appens kontrol og kan fejle eller være utilgængelig. Du må ikke stole på den. Føreren er alene ansvarlig for at overholde alle gældende færdselslove.\n\nIndhold: ParafusoTV er en afspiller. Den hoster, leverer og indekserer ikke noget eget indhold. Alle streams, kataloger og metadata kommer fra tjenester og udbydere, du selv konfigurerer, og du er alene ansvarlig for at have de rettigheder eller abonnementer, der kræves for at få adgang til dem, og for at overholde vilkårene for disse tjenester og lovene i dit land.\n\nDistribution: denne app distribueres ikke via Google Play og er ikke tilknyttet, godkendt eller certificeret af Google. Android, Android Auto og Google Cast er varemærker tilhørende Google LLC.</string>
     <string name="rec">REC</string>
     <string name="versions">Versioner</string>
     <string name="fit">Tilpas</string>
@@ -162,7 +162,7 @@
     <string name="group_channels">Gruppér duplikatkanaler</string>
     <string name="set_parental_pin">Angiv forældre-PIN</string>
     <string name="clear_watch_history">Ryd visningshistorik</string>
-    <string name="plugins_description">Små scripts, der tilføjer funktioner - finde udbydere eller søge efter streams. Intet installeres som en separat app; et script kører inde i Lumora, og alt, hvad det foreslår, bruges kun, hvis du bekræfter det.</string>
+    <string name="plugins_description">Små scripts, der tilføjer funktioner - finde udbydere eller søge efter streams. Intet installeres som en separat app; et script kører inde i ParafusoTV, og alt, hvad det foreslår, bruges kun, hvis du bekræfter det.</string>
     <string name="add_a_plugin">TILFØJ ET PLUGIN</string>
     <string name="install_from_url">Tilføj fra URL</string>
     <string name="enter_apk_link">Angiv et link til plugin-scriptet</string>
@@ -175,12 +175,10 @@
     <string name="results">RESULTATER</string>
     <string name="version">Version</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">App</string>
     <string name="about_platform_label">Platform</string>
     <string name="about_platform_value">Android · TV + telefon</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Søg efter opdateringer</string>
 
     <!-- dialog_search.xml -->

@@ -95,10 +95,10 @@
     <!-- Afișat pe ecranul mașinii la începutul fiecărei sesiuni și în Setări pe telefon.
          Păstrat suficient de scurt pentru ca unitatea de bord să nu îl trunchieze la mijlocul
          unei propoziții. -->
-    <string name="car_disclaimer">Nu vizionați video în timp ce conduceți.\n\nVideo se redă doar cât timp Lumora poate confirma că mașina este oprită. La orice mișcare, imaginea se stinge, iar sunetul continuă.\n\nFurnizat „ca atare", fără garanție și fără răspundere pentru orice pierdere, daună, penalitate sau defecțiune a acestor comenzi. Folosiți-l în mod legal.</string>
+    <string name="car_disclaimer">Nu vizionați video în timp ce conduceți.\n\nVideo se redă doar cât timp ParafusoTV poate confirma că mașina este oprită. La orice mișcare, imaginea se stinge, iar sunetul continuă.\n\nFurnizat „ca atare", fără garanție și fără răspundere pentru orice pierdere, daună, penalitate sau defecțiune a acestor comenzi. Folosiți-l în mod legal.</string>
 
     <string name="legal_notice_title">Aviz legal și de siguranță</string>
-    <string name="legal_notice">Lumora este oferită gratuit, „ca atare" și fără nicio garanție, expresă sau implicită, inclusiv, fără a se limita la, garanțiile de vandabilitate, de adecvare pentru un scop anume și de neîncălcare a drepturilor terților.\n\nÎn cea mai mare măsură permisă de lege, autorii și contribuitorii nu își asumă nicio răspundere pentru vreo pretenție, daună, pierdere sau altă obligație care decurge din aplicație sau din utilizarea acesteia ori în legătură cu acestea, inclusiv, fără a se limita la: pierderea sau deteriorarea datelor ori a dispozitivelor, întreruperea serviciului, blocările sau erorile aplicației, costurile facturate de rețeaua sau furnizorii dvs. de conținut, sau orice penalitate, amendă ori urmărire penală rezultată din utilizarea aplicației.\n\nConducerea: redarea video într-un vehicul este destinată doar unui vehicul staționar sau unui ecran pentru pasageri. Vizionarea video în timpul conducerii este ilegală în majoritatea jurisdicțiilor. Lumora încearcă să detecteze mișcarea și să dezactiveze automat video, dar această detecție depinde de hardware, permisiuni și semnale aflate în afara controlului aplicației și poate eșua sau fi indisponibilă. Nu trebuie să vă bazați pe ea. Șoferul rămâne singurul responsabil de respectarea tuturor legilor rutiere aplicabile.\n\nConținut: Lumora este un player. Nu găzduiește, nu oferă și nu indexează niciun conținut propriu. Toate fluxurile, cataloagele și metadatele provin de la serviciile și furnizorii pe care îi configurați dvs., iar dvs. sunteți singurul responsabil pentru deținerea drepturilor sau abonamentelor necesare accesului la acestea și pentru respectarea condițiilor acestor servicii și a legilor țării dvs.\n\nDistribuție: această aplicație nu este distribuită prin Google Play și nu este afiliată, aprobată sau certificată de Google. Android, Android Auto și Google Cast sunt mărci comerciale ale Google LLC.</string>
+    <string name="legal_notice">ParafusoTV este oferită gratuit, „ca atare" și fără nicio garanție, expresă sau implicită, inclusiv, fără a se limita la, garanțiile de vandabilitate, de adecvare pentru un scop anume și de neîncălcare a drepturilor terților.\n\nÎn cea mai mare măsură permisă de lege, autorii și contribuitorii nu își asumă nicio răspundere pentru vreo pretenție, daună, pierdere sau altă obligație care decurge din aplicație sau din utilizarea acesteia ori în legătură cu acestea, inclusiv, fără a se limita la: pierderea sau deteriorarea datelor ori a dispozitivelor, întreruperea serviciului, blocările sau erorile aplicației, costurile facturate de rețeaua sau furnizorii dvs. de conținut, sau orice penalitate, amendă ori urmărire penală rezultată din utilizarea aplicației.\n\nConducerea: redarea video într-un vehicul este destinată doar unui vehicul staționar sau unui ecran pentru pasageri. Vizionarea video în timpul conducerii este ilegală în majoritatea jurisdicțiilor. ParafusoTV încearcă să detecteze mișcarea și să dezactiveze automat video, dar această detecție depinde de hardware, permisiuni și semnale aflate în afara controlului aplicației și poate eșua sau fi indisponibilă. Nu trebuie să vă bazați pe ea. Șoferul rămâne singurul responsabil de respectarea tuturor legilor rutiere aplicabile.\n\nConținut: ParafusoTV este un player. Nu găzduiește, nu oferă și nu indexează niciun conținut propriu. Toate fluxurile, cataloagele și metadatele provin de la serviciile și furnizorii pe care îi configurați dvs., iar dvs. sunteți singurul responsabil pentru deținerea drepturilor sau abonamentelor necesare accesului la acestea și pentru respectarea condițiilor acestor servicii și a legilor țării dvs.\n\nDistribuție: această aplicație nu este distribuită prin Google Play și nu este afiliată, aprobată sau certificată de Google. Android, Android Auto și Google Cast sunt mărci comerciale ale Google LLC.</string>
     <string name="rec">REC</string>
     <string name="versions">Versiuni</string>
     <string name="fit">Potrivește</string>
@@ -164,7 +164,7 @@
     <string name="group_channels">Grupează canalele duplicate</string>
     <string name="set_parental_pin">Setează codul PIN parental</string>
     <string name="clear_watch_history">Șterge istoricul de vizionare</string>
-    <string name="plugins_description">Scripturi mici care adaugă funcționalități - găsirea furnizorilor sau căutarea de fluxuri. Nimic nu se instalează ca aplicație separată; un script rulează în interiorul Lumora, iar orice propune este folosit doar dacă îl confirmați.</string>
+    <string name="plugins_description">Scripturi mici care adaugă funcționalități - găsirea furnizorilor sau căutarea de fluxuri. Nimic nu se instalează ca aplicație separată; un script rulează în interiorul ParafusoTV, iar orice propune este folosit doar dacă îl confirmați.</string>
     <string name="add_a_plugin">ADĂUGĂ UN PLUGIN</string>
     <string name="install_from_url">Adaugă din URL</string>
     <string name="enter_apk_link">Introduceți un link către scriptul pluginului</string>
@@ -177,12 +177,10 @@
     <string name="results">REZULTATE</string>
     <string name="version">Versiune</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">Aplicație</string>
     <string name="about_platform_label">Platformă</string>
     <string name="about_platform_value">Android · TV + telefon</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Verifică actualizări</string>
 
     <!-- dialog_search.xml -->

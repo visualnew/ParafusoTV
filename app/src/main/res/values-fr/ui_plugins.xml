@@ -2,7 +2,7 @@
 <resources>
     <!-- Plugins pane & stream search (MainActivityPlugins) -->
     <string name="plug_public_streaming_content_title">Contenu de streaming public</string>
-    <string name="plug_public_streaming_content_message">Ces plugins recherchent du contenu sur des sites publics de torrent et de streaming. Lumora n\'héberge, ne contrôle ni ne vérifie rien de ce qu\'ils trouvent — ce qu\'ils renvoient est entièrement hors du contrôle de cette application.\n\nRéservé à un usage éducatif et personnel. Vous êtes responsable du respect des lois qui s\'appliquent à vous.</string>
+    <string name="plug_public_streaming_content_message">Ces plugins recherchent du contenu sur des sites publics de torrent et de streaming. ParafusoTV n\'héberge, ne contrôle ni ne vérifie rien de ce qu\'ils trouvent — ce qu\'ils renvoient est entièrement hors du contrôle de cette application.\n\nRéservé à un usage éducatif et personnel. Vous êtes responsable du respect des lois qui s\'appliquent à vous.</string>
     <string name="plug_i_agree">J\'accepte</string>
     <string name="plug_no_trailer_found">Aucune bande-annonce trouvée.</string>
     <string name="plug_could_not_resolve_stream">Impossible de résoudre le flux</string>
@@ -16,10 +16,10 @@
     <string name="plug_added_label">Ajouté : %1$s</string>
     <string name="plug_added_label_enable">Ajouté : %1$s - activez-le pour l\'utiliser</string>
     <string name="plug_add_plugin_script_from_url">Ajouter un script de plugin depuis une URL</string>
-    <string name="plug_enter_plugin_script_message">Saisissez le lien vers un script de plugin Lumora (.js).</string>
+    <string name="plug_enter_plugin_script_message">Saisissez le lien vers un script de plugin ParafusoTV (.js).</string>
     <string name="plug_added">Ajouté</string>
     <string name="plug_add_candidate_title">Ajouter %1$s ?</string>
-    <string name="plug_add_candidate_message">%1$s a trouvé ce fournisseur %2$s :\n\n%3$s\n\nL\'ajouter enregistre ces informations comme fournisseur dans Lumora.</string>
+    <string name="plug_add_candidate_message">%1$s a trouvé ce fournisseur %2$s :\n\n%3$s\n\nL\'ajouter enregistre ces informations comme fournisseur dans ParafusoTV.</string>
     <string name="plug_starting_label">Démarrage de %1$s…</string>
     <string name="plug_nothing_found">Rien trouvé</string>
     <string name="plug_found_count">Trouvé : %1$d</string>
@@ -99,7 +99,7 @@
 
     <!-- Update & backup toasts (MainActivity) -->
     <string name="plug_update_available">Mise à jour disponible</string>
-    <string name="plug_update_available_message">Lumora v%1$s est disponible.\nVersion actuelle : v%2$s\n\n%3$s</string>
+    <string name="plug_update_available_message">ParafusoTV v%1$s est disponible.\nVersion actuelle : v%2$s\n\n%3$s</string>
     <string name="plug_later">Plus tard</string>
     <string name="plug_downloading_update">Téléchargement de la mise à jour…</string>
     <string name="plug_update_download_failed">Échec du téléchargement de la mise à jour</string>

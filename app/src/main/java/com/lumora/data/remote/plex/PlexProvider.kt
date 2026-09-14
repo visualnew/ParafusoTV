@@ -29,14 +29,14 @@ private const val PLEX_TV_BASE = "https://plex.tv/api/v2"
  *  endpoint most likely to be slow or geo-blocked, and the two are interchangeable. */
 private const val PLEX_CLIENTS_BASE = "https://clients.plex.tv/api/v2"
 
-private const val PRODUCT = "Lumora"
+private const val PRODUCT = "ParafusoTV"
 private const val VERSION = "1.0"
 private const val PLATFORM = "Android"
 /** Fixed literal rather than Build.MODEL, for the same reason Jellyfin's is: a device that
  *  reports an odd model string turns into an odd entry in the user's Plex device list, and
  *  these values also ride as query params on the transcode endpoints where anything exotic
  *  is one more thing to escape. */
-private const val DEVICE = "Lumora"
+private const val DEVICE = "ParafusoTV"
 
 /** One page of a library crawl. Plex's own clients page at 100-ish; 500 keeps the round
  *  trips down on a big library without producing a payload a TV stick struggles to parse. */

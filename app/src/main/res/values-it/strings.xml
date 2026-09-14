@@ -93,10 +93,10 @@
 
     <!-- Mostrato sullo schermo dell'auto all'inizio di ogni sessione e nelle Impostazioni sul
          telefono. Tenuto abbastanza corto da non essere troncato a metà frase dallo schermo dell'auto. -->
-    <string name="car_disclaimer">Non guardare video mentre guidi.\n\nIl video viene riprodotto solo quando Lumora può confermare che l\'auto è ferma. A qualsiasi movimento, l\'immagine si spegne e l\'audio continua.\n\nFornito «così com\'è», senza garanzia e senza responsabilità per qualsiasi perdita, danno, sanzione o malfunzionamento di questi controlli. Usalo in modo legale.</string>
+    <string name="car_disclaimer">Non guardare video mentre guidi.\n\nIl video viene riprodotto solo quando ParafusoTV può confermare che l\'auto è ferma. A qualsiasi movimento, l\'immagine si spegne e l\'audio continua.\n\nFornito «così com\'è», senza garanzia e senza responsabilità per qualsiasi perdita, danno, sanzione o malfunzionamento di questi controlli. Usalo in modo legale.</string>
 
     <string name="legal_notice_title">Nota legale e di sicurezza</string>
-    <string name="legal_notice">Lumora è fornito gratuitamente, «così com\'è» e senza garanzia di alcun tipo, esplicita o implicita, incluse, a titolo esemplificativo ma non esaustivo, le garanzie di commerciabilità, idoneità a uno scopo particolare e non violazione.\n\nNella misura massima consentita dalla legge, gli autori e i collaboratori non accettano alcuna responsabilità per rivendicazioni, danni, perdite o altre responsabilità derivanti dall\'app o dal suo utilizzo o a esse connesse, incluse, a titolo esemplificativo ma non esaustivo: perdita o danneggiamento di dati o dispositivi, interruzione del servizio, arresti anomali o errori dell\'app, addebiti applicati dal vostro operatore di rete o dai vostri fornitori di contenuti, o qualsiasi sanzione, ammenda o procedimento penale derivante dal vostro utilizzo dell\'app.\n\nGuida: la riproduzione video in un veicolo è destinata esclusivamente a un veicolo fermo o a un display per i passeggeri. Guardare video durante la guida è illegale nella maggior parte delle giurisdizioni. Lumora tenta di rilevare il movimento e disattivare automaticamente il video, ma questo rilevamento dipende da hardware, autorizzazioni e segnali al di fuori del controllo dell\'app e potrebbe fallire o non essere disponibile. Non dovete fare affidamento su di esso. Il conducente rimane l\'unico responsabile del rispetto di tutte le leggi sulla circolazione stradale applicabili.\n\nContenuti: Lumora è un lettore. Non ospita, fornisce né indicizza contenuti propri. Tutti gli stream, i cataloghi e i metadati provengono da servizi e provider configurati da voi, e voi siete gli unici responsabili di detenere i diritti o gli abbonamenti necessari per accedervi e di rispettare i termini di tali servizi e le leggi del vostro paese.\n\nDistribuzione: questa app non è distribuita tramite Google Play e non è affiliata a Google, né approvata o certificata da Google. Android, Android Auto e Google Cast sono marchi di Google LLC.</string>
+    <string name="legal_notice">ParafusoTV è fornito gratuitamente, «così com\'è» e senza garanzia di alcun tipo, esplicita o implicita, incluse, a titolo esemplificativo ma non esaustivo, le garanzie di commerciabilità, idoneità a uno scopo particolare e non violazione.\n\nNella misura massima consentita dalla legge, gli autori e i collaboratori non accettano alcuna responsabilità per rivendicazioni, danni, perdite o altre responsabilità derivanti dall\'app o dal suo utilizzo o a esse connesse, incluse, a titolo esemplificativo ma non esaustivo: perdita o danneggiamento di dati o dispositivi, interruzione del servizio, arresti anomali o errori dell\'app, addebiti applicati dal vostro operatore di rete o dai vostri fornitori di contenuti, o qualsiasi sanzione, ammenda o procedimento penale derivante dal vostro utilizzo dell\'app.\n\nGuida: la riproduzione video in un veicolo è destinata esclusivamente a un veicolo fermo o a un display per i passeggeri. Guardare video durante la guida è illegale nella maggior parte delle giurisdizioni. ParafusoTV tenta di rilevare il movimento e disattivare automaticamente il video, ma questo rilevamento dipende da hardware, autorizzazioni e segnali al di fuori del controllo dell\'app e potrebbe fallire o non essere disponibile. Non dovete fare affidamento su di esso. Il conducente rimane l\'unico responsabile del rispetto di tutte le leggi sulla circolazione stradale applicabili.\n\nContenuti: ParafusoTV è un lettore. Non ospita, fornisce né indicizza contenuti propri. Tutti gli stream, i cataloghi e i metadati provengono da servizi e provider configurati da voi, e voi siete gli unici responsabili di detenere i diritti o gli abbonamenti necessari per accedervi e di rispettare i termini di tali servizi e le leggi del vostro paese.\n\nDistribuzione: questa app non è distribuita tramite Google Play e non è affiliata a Google, né approvata o certificata da Google. Android, Android Auto e Google Cast sono marchi di Google LLC.</string>
     <string name="rec">REC</string>
     <string name="versions">Versioni</string>
     <string name="fit">Adatta</string>
@@ -163,7 +163,7 @@
     <string name="group_channels">Raggruppa canali duplicati</string>
     <string name="set_parental_pin">Imposta il PIN parentale</string>
     <string name="clear_watch_history">Cancella cronologia di visione</string>
-    <string name="plugins_description">Piccoli script che aggiungono funzioni: trovare provider o cercare stream. Nulla viene installato come app separata; uno script gira dentro Lumora e tutto ciò che propone viene usato solo se tu lo confermi.</string>
+    <string name="plugins_description">Piccoli script che aggiungono funzioni: trovare provider o cercare stream. Nulla viene installato come app separata; uno script gira dentro ParafusoTV e tutto ciò che propone viene usato solo se tu lo confermi.</string>
     <string name="add_a_plugin">AGGIUNGI UN PLUGIN</string>
     <string name="install_from_url">Aggiungi da URL</string>
     <string name="enter_apk_link">Inserisci il link dello script del plugin</string>
@@ -176,12 +176,10 @@
     <string name="results">RISULTATI</string>
     <string name="version">Versione</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">App</string>
     <string name="about_platform_label">Piattaforma</string>
     <string name="about_platform_value">Android · TV + telefono</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Controlla aggiornamenti</string>
 
     <!-- dialog_search.xml -->

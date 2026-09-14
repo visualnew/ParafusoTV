@@ -93,10 +93,10 @@
 
     <!-- Minden munkamenet elején megjelenik az autós képernyőn, valamint a telefon Beállításai között.
          Elég rövid ahhoz, hogy a fejegység ne vágja el félmondatban. -->
-    <string name="car_disclaimer">Ne nézzen videót vezetés közben.\n\nA videó csak akkor játsszák le, ha a Lumora megerősíti, hogy az autó áll. Bármilyen mozgásnál a kép kikapcsol, a hang viszont folytatódik.\n\n„Mindenféle garancia nélkül" biztosított, minden garancia és felelősség kizárásával bármilyen veszteségért, kárért, bírságért vagy a vezérlők meghibásodásáért. Használja jogszerűen.</string>
+    <string name="car_disclaimer">Ne nézzen videót vezetés közben.\n\nA videó csak akkor játsszák le, ha a ParafusoTV megerősíti, hogy az autó áll. Bármilyen mozgásnál a kép kikapcsol, a hang viszont folytatódik.\n\n„Mindenféle garancia nélkül" biztosított, minden garancia és felelősség kizárásával bármilyen veszteségért, kárért, bírságért vagy a vezérlők meghibásodásáért. Használja jogszerűen.</string>
 
     <string name="legal_notice_title">Jogi és biztonsági közlemény</string>
-    <string name="legal_notice">A Lumora ingyenesen, „mindenféle garancia nélkül" érhető el, kifejezett vagy hallgatólagos garanciák nélkül, ideértve többek között az eladhatóságra, az adott célra való alkalmasságra és a jogérvényesítés hiányára vonatkozó garanciákat.\n\nA törvény által megengedett legteljesebb mértékben a szerzők és közreműködők semmilyen felelősséget nem vállalnak semmilyen igényért, kárért, veszteségért vagy más kötelezettségért, amely az alkalmazásból vagy annak használatából ered, ideértve többek között: adatok vagy eszközök elvesztését vagy sérülését, a szolgáltatás megszakadását, az alkalmazás összeomlását vagy hibáit, a hálózati vagy tartalomszolgáltatók által felszámított díjakat, vagy az alkalmazás használatából eredő bármilyen büntetést, pénzbírságot vagy büntetőeljárást.\n\nVezetés: a videolejátszás járműben kizárólag álló járműben vagy utaskijelzőn történő megtekintésre szolgál. A legtöbb joghatóságban törvénytelen vezetés közben videót nézni. A Lumora megpróbálja érzékelni a mozgást, és automatikusan kikapcsolni a videót, de ez az érzékelés az alkalmazás ellenőrzésén kívül eső hardvertől, engedélyektől és jelektől függ, ezért meghibásodhat vagy nem áll rendelkezésre. Nem szabad rá hagyatkoznia. A vezető kizárólag felelős az összes vonatkozó közlekedési szabály betartásáért.\n\nTartalom: a Lumora egy lejátszó. Nem tárol, nem szolgáltat és nem indexel saját tartalmat. Minden stream, katalógus és metaadat az Ön által beállított szolgáltatásokból és szolgáltatóktól származik, és Ön kizárólag felelős azért, hogy rendelkezzen a hozzáféréshez szükséges jogokkal vagy előfizetésekkel, valamint azért, hogy betartsa ezen szolgáltatások feltételeit és országa törvényeit.\n\nTerjesztés: ez az alkalmazás nem a Google Playen keresztül kerül terjesztésre, és nem áll kapcsolatban a Google-lel, nem hagyta jóvá a Google, és nem is tanúsítja az. Az Android, az Android Auto és a Google Cast a Google LLC védjegyei.</string>
+    <string name="legal_notice">A ParafusoTV ingyenesen, „mindenféle garancia nélkül" érhető el, kifejezett vagy hallgatólagos garanciák nélkül, ideértve többek között az eladhatóságra, az adott célra való alkalmasságra és a jogérvényesítés hiányára vonatkozó garanciákat.\n\nA törvény által megengedett legteljesebb mértékben a szerzők és közreműködők semmilyen felelősséget nem vállalnak semmilyen igényért, kárért, veszteségért vagy más kötelezettségért, amely az alkalmazásból vagy annak használatából ered, ideértve többek között: adatok vagy eszközök elvesztését vagy sérülését, a szolgáltatás megszakadását, az alkalmazás összeomlását vagy hibáit, a hálózati vagy tartalomszolgáltatók által felszámított díjakat, vagy az alkalmazás használatából eredő bármilyen büntetést, pénzbírságot vagy büntetőeljárást.\n\nVezetés: a videolejátszás járműben kizárólag álló járműben vagy utaskijelzőn történő megtekintésre szolgál. A legtöbb joghatóságban törvénytelen vezetés közben videót nézni. A ParafusoTV megpróbálja érzékelni a mozgást, és automatikusan kikapcsolni a videót, de ez az érzékelés az alkalmazás ellenőrzésén kívül eső hardvertől, engedélyektől és jelektől függ, ezért meghibásodhat vagy nem áll rendelkezésre. Nem szabad rá hagyatkoznia. A vezető kizárólag felelős az összes vonatkozó közlekedési szabály betartásáért.\n\nTartalom: a ParafusoTV egy lejátszó. Nem tárol, nem szolgáltat és nem indexel saját tartalmat. Minden stream, katalógus és metaadat az Ön által beállított szolgáltatásokból és szolgáltatóktól származik, és Ön kizárólag felelős azért, hogy rendelkezzen a hozzáféréshez szükséges jogokkal vagy előfizetésekkel, valamint azért, hogy betartsa ezen szolgáltatások feltételeit és országa törvényeit.\n\nTerjesztés: ez az alkalmazás nem a Google Playen keresztül kerül terjesztésre, és nem áll kapcsolatban a Google-lel, nem hagyta jóvá a Google, és nem is tanúsítja az. Az Android, az Android Auto és a Google Cast a Google LLC védjegyei.</string>
     <string name="rec">REC</string>
     <string name="versions">Verziók</string>
     <string name="fit">Igazítás</string>
@@ -162,7 +162,7 @@
     <string name="group_channels">Duplikált csatornák csoportosítása</string>
     <string name="set_parental_pin">Szülői PIN beállítása</string>
     <string name="clear_watch_history">Nézési előzmények törlése</string>
-    <string name="plugins_description">Kis szkriptek, amelyek funkciókat adnak hozzá - szolgáltatók keresése vagy streamelési források keresése. Semmi nem települ külön alkalmazásként; a szkript a Lumora belsejében fut, és amit javasol, az csak akkor kerül felhasználásra, ha Ön megerősíti.</string>
+    <string name="plugins_description">Kis szkriptek, amelyek funkciókat adnak hozzá - szolgáltatók keresése vagy streamelési források keresése. Semmi nem települ külön alkalmazásként; a szkript a ParafusoTV belsejében fut, és amit javasol, az csak akkor kerül felhasználásra, ha Ön megerősíti.</string>
     <string name="add_a_plugin">BŐVÍTMÉNY HOZZÁADÁSA</string>
     <string name="install_from_url">Hozzáadás URL-ről</string>
     <string name="enter_apk_link">Adja meg a bővítményszkript linkjét</string>
@@ -175,12 +175,10 @@
     <string name="results">EREDMÉNYEK</string>
     <string name="version">Verzió</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">Alkalmazás</string>
     <string name="about_platform_label">Platform</string>
     <string name="about_platform_value">Android · TV + telefon</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Frissítések keresése</string>
 
     <!-- dialog_search.xml -->

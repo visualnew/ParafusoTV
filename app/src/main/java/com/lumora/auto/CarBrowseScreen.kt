@@ -23,7 +23,7 @@ import com.lumora.model.Channel
 class CarBrowseScreen(
     carContext: CarContext,
     private val session: LumoraCarSession,
-    private val title: String = "Lumora",
+    private val title: String = "ParafusoTV",
     /** Null on the root screen, which lists sections rather than channels. */
     private val channels: List<Channel>? = null,
     private val page: Int = 0,

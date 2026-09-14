@@ -150,6 +150,24 @@
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/mobileMoreAbout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:background="@drawable/bg_select_item"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="16dp">
+
+                    <ImageView android:layout_width="22dp" android:layout_height="22dp" android:contentDescription="@null" android:src="@drawable/ic_about" android:tint="@color/text_primary" />
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_weight="1" android:text="@string/about" android:textColor="@color/text_primary" android:textSize="16sp" />
+
+                    <ImageView android:layout_width="18dp" android:layout_height="18dp" android:contentDescription="@null" android:src="@drawable/ic_chevron_right" android:tint="@color/text_secondary" />
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/mobileMoreRefresh"
                     android:layout_width="match_parent"
                     android:layout_height="56dp"

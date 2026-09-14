@@ -463,7 +463,7 @@ class XtreamClient(private val client: OkHttpClient) {
     private fun fetchJson(url: String): JSONObject? {
         return try {
             val request = Request.Builder().url(url)
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .header("Accept", "application/json, text/plain, */*")
                 .build()
             // use{}, because the early returns below left the response unread and unclosed -

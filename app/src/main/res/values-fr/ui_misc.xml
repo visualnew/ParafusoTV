@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Android Auto / car screens -->
-    <string name="ui_car_no_channels">Aucune chaîne en cache. Ouvrez Lumora une fois sur votre téléphone pour charger vos fournisseurs.</string>
+    <string name="ui_car_no_channels">Aucune chaîne en cache. Ouvrez ParafusoTV une fois sur votre téléphone pour charger vos fournisseurs.</string>
     <string name="ui_favourites">Favoris</string>
     <string name="ui_recent">Récents</string>
     <string name="ui_all_channels">Toutes les chaînes</string>
@@ -15,9 +15,9 @@
     <string name="ui_next">Suiv.</string>
 
     <!-- App updates -->
-    <string name="ui_update_title">Mise à jour Lumora</string>
+    <string name="ui_update_title">Mise à jour ParafusoTV</string>
     <string name="ui_update_downloading">Téléchargement de la v%1$s</string>
-    <string name="ui_update_allow_install">Autorisez Lumora à installer des mises à jour, puis réessayez</string>
+    <string name="ui_update_allow_install">Autorisez ParafusoTV à installer des mises à jour, puis réessayez</string>
     <string name="ui_update_no_app">Aucune application trouvée pour installer la mise à jour</string>
 
     <!-- Downloads -->

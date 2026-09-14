@@ -92,10 +92,10 @@
 
     <!-- Ditampilkan di layar mobil di awal setiap sesi, dan di Pengaturan di ponsel. Dibuat cukup
          pendek agar head unit tidak memotongnya di tengah kalimat. -->
-    <string name="car_disclaimer">Jangan menonton video saat mengemudi.\n\nVideo hanya diputar saat Lumora dapat memastikan mobil berhenti. Saat ada gerakan, gambar mati dan suara tetap berlanjut.\n\nDisediakan “sebagaimana adanya”, tanpa jaminan dan tanpa tanggung jawab atas segala kerugian, kerusakan, denda, atau kegagalan kontrol ini. Gunakan sesuai hukum.</string>
+    <string name="car_disclaimer">Jangan menonton video saat mengemudi.\n\nVideo hanya diputar saat ParafusoTV dapat memastikan mobil berhenti. Saat ada gerakan, gambar mati dan suara tetap berlanjut.\n\nDisediakan “sebagaimana adanya”, tanpa jaminan dan tanpa tanggung jawab atas segala kerugian, kerusakan, denda, atau kegagalan kontrol ini. Gunakan sesuai hukum.</string>
 
     <string name="legal_notice_title">Pemberitahuan hukum &amp; keselamatan</string>
-    <string name="legal_notice">Lumora disediakan gratis, “sebagaimana adanya” dan tanpa jaminan apa pun, tersurat maupun tersirat, termasuk tetapi tidak terbatas pada jaminan kelayakan untuk diperdagangkan, kesesuaian untuk tujuan tertentu, dan tidak melanggar hak pihak lain.\n\nSejauh yang diizinkan oleh hukum, penulis dan kontributor tidak bertanggung jawab atas segala klaim, kerusakan, kerugian, atau tanggung jawab lain yang timbul dari atau terkait dengan aplikasi atau penggunaannya, termasuk tetapi tidak terbatas pada: kehilangan atau kerusakan data atau perangkat, gangguan layanan, crash atau kesalahan aplikasi, biaya yang dikenakan oleh penyedia jaringan atau konten Anda, atau hukuman, denda, atau tuntutan hukum apa pun yang diakibatkan oleh penggunaan aplikasi Anda.\n\nMengemudi: pemutaran video di dalam kendaraan hanya ditujukan untuk kendaraan yang berhenti atau layar penumpang. Menonton video saat mengemudi adalah melanggar hukum di sebagian besar yurisdiksi. Lumora berupaya mendeteksi gerakan dan menonaktifkan video secara otomatis, tetapi deteksi ini bergantung pada perangkat keras, izin, dan sinyal di luar kendali aplikasi dan dapat gagal atau tidak tersedia. Anda tidak boleh mengandalkannya. Pengemudi tetap bertanggung jawab penuh atas kepatuhan terhadap semua undang-undang lalu lintas yang berlaku.\n\nKonten: Lumora adalah pemutar. Lumora tidak menghosting, menyediakan, atau mengindeks konten apa pun miliknya sendiri. Semua streaming, katalog, dan metadata berasal dari layanan dan penyedia yang Anda konfigurasi sendiri, dan Anda bertanggung jawab penuh untuk memiliki hak atau langganan yang diperlukan untuk mengaksesnya, serta mematuhi ketentuan layanan tersebut dan hukum negara Anda.\n\nDistribusi: aplikasi ini tidak didistribusikan melalui Google Play dan tidak berafiliasi dengan, didukung oleh, atau disertifikasi oleh Google. Android, Android Auto, dan Google Cast adalah merek dagang Google LLC.</string>
+    <string name="legal_notice">ParafusoTV disediakan gratis, “sebagaimana adanya” dan tanpa jaminan apa pun, tersurat maupun tersirat, termasuk tetapi tidak terbatas pada jaminan kelayakan untuk diperdagangkan, kesesuaian untuk tujuan tertentu, dan tidak melanggar hak pihak lain.\n\nSejauh yang diizinkan oleh hukum, penulis dan kontributor tidak bertanggung jawab atas segala klaim, kerusakan, kerugian, atau tanggung jawab lain yang timbul dari atau terkait dengan aplikasi atau penggunaannya, termasuk tetapi tidak terbatas pada: kehilangan atau kerusakan data atau perangkat, gangguan layanan, crash atau kesalahan aplikasi, biaya yang dikenakan oleh penyedia jaringan atau konten Anda, atau hukuman, denda, atau tuntutan hukum apa pun yang diakibatkan oleh penggunaan aplikasi Anda.\n\nMengemudi: pemutaran video di dalam kendaraan hanya ditujukan untuk kendaraan yang berhenti atau layar penumpang. Menonton video saat mengemudi adalah melanggar hukum di sebagian besar yurisdiksi. ParafusoTV berupaya mendeteksi gerakan dan menonaktifkan video secara otomatis, tetapi deteksi ini bergantung pada perangkat keras, izin, dan sinyal di luar kendali aplikasi dan dapat gagal atau tidak tersedia. Anda tidak boleh mengandalkannya. Pengemudi tetap bertanggung jawab penuh atas kepatuhan terhadap semua undang-undang lalu lintas yang berlaku.\n\nKonten: ParafusoTV adalah pemutar. ParafusoTV tidak menghosting, menyediakan, atau mengindeks konten apa pun miliknya sendiri. Semua streaming, katalog, dan metadata berasal dari layanan dan penyedia yang Anda konfigurasi sendiri, dan Anda bertanggung jawab penuh untuk memiliki hak atau langganan yang diperlukan untuk mengaksesnya, serta mematuhi ketentuan layanan tersebut dan hukum negara Anda.\n\nDistribusi: aplikasi ini tidak didistribusikan melalui Google Play dan tidak berafiliasi dengan, didukung oleh, atau disertifikasi oleh Google. Android, Android Auto, dan Google Cast adalah merek dagang Google LLC.</string>
     <string name="rec">REC</string>
     <string name="versions">Versi</string>
     <string name="fit">Sesuaikan</string>
@@ -161,7 +161,7 @@
     <string name="group_channels">Kelompokkan saluran duplikat</string>
     <string name="set_parental_pin">Tetapkan PIN orang tua</string>
     <string name="clear_watch_history">Hapus riwayat tontonan</string>
-    <string name="plugins_description">Skrip kecil yang menambahkan fitur - menemukan penyedia, atau mencari streaming. Tidak ada yang diinstal sebagai aplikasi terpisah; skrip berjalan di dalam Lumora, dan apa pun yang diajukan hanya digunakan jika Anda mengonfirmasinya.</string>
+    <string name="plugins_description">Skrip kecil yang menambahkan fitur - menemukan penyedia, atau mencari streaming. Tidak ada yang diinstal sebagai aplikasi terpisah; skrip berjalan di dalam ParafusoTV, dan apa pun yang diajukan hanya digunakan jika Anda mengonfirmasinya.</string>
     <string name="add_a_plugin">TAMBAH PLUGIN</string>
     <string name="install_from_url">Tambah dari URL</string>
     <string name="enter_apk_link">Masukkan tautan skrip plugin</string>
@@ -174,12 +174,10 @@
     <string name="results">HASIL</string>
     <string name="version">Versi</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">Aplikasi</string>
     <string name="about_platform_label">Platform</string>
     <string name="about_platform_value">Android · TV + ponsel</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Periksa Pembaruan</string>
 
     <!-- dialog_search.xml -->

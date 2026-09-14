@@ -93,10 +93,10 @@
 
     <!-- Her oturumun başında araç ekranında ve telefonda Ayarlar'da gösterilir.
          Araç ünitesinin ortasında kesmeyeceği kadar kısa tutulmuştur. -->
-    <string name="car_disclaimer">Sürüş sırasında video izlemeyin.\n\nVideo yalnızca Lumora aracın durduğunu doğrulayabildiğinde oynar. Herhangi bir hareket anında görüntü kapanır ve ses devam eder.\n\n“Olduğu gibi” sunulur; garanti yoktur ve bu kontrollerden kaynaklanan herhangi bir kayıp, hasar, ceza veya arıza için sorumluluk kabul edilmez. Yasaya uygun şekilde kullanın.</string>
+    <string name="car_disclaimer">Sürüş sırasında video izlemeyin.\n\nVideo yalnızca ParafusoTV aracın durduğunu doğrulayabildiğinde oynar. Herhangi bir hareket anında görüntü kapanır ve ses devam eder.\n\n“Olduğu gibi” sunulur; garanti yoktur ve bu kontrollerden kaynaklanan herhangi bir kayıp, hasar, ceza veya arıza için sorumluluk kabul edilmez. Yasaya uygun şekilde kullanın.</string>
 
     <string name="legal_notice_title">Yasal ve güvenlik bildirimi</string>
-    <string name="legal_notice">Lumora ücretsiz olarak, “olduğu gibi” ve açık veya zımni her türlü garanti olmaksızın sunulur; ticari elverişlilik, belirli bir amaca uygunluk ve üçüncü kişi haklarını ihlal etmeme garantileri dahil ancak bunlarla sınırlı olmamak üzere.\n\nYasanın izin verdiği en geniş ölçüde, yazarlar ve katkıda bulunanlar; uygulamadan veya kullanımından kaynaklanan ya da bunlarla bağlantılı tüm talepler, hasarlar, kayıplar ve diğer yükümlülükler için sorumluluk kabul etmez; bunlar dahil ancak bunlarla sınırlı olmamak üzere: veri veya cihaz kaybı ya da hasarı, hizmet kesintisi, uygulama çökmeleri veya hataları, ağ veya içerik sağlayıcılarınızın yansıttığı ücretler ya da uygulamayı kullanımınızdan doğan herhangi bir ceza, para cezası veya kovuşturma.\n\nSürüş: araç içinde video oynatımı yalnızca aracın durması veya yolcu ekranı kullanımı içindir. Sürüş sırasında video izlemek çoğu yargı bölgesinde yasa dışıdır. Lumora hareketi algılayıp videoyu otomatik olarak kapatmayı dener, ancak bu algılama uygulamanın kontrolü dışındaki donanıma, izinlere ve sinyallere bağlıdır; başarısız olabilir ya da kullanılamayabilir. Buna güvenmemelisiniz. Sürücü, geçerli tüm trafik kurallarına uyulmasından tek başına sorumludur.\n\nİçerik: Lumora bir oynatıcıdır. Kendi içeriğini barındırmaz, sağlamaz ve dizinlemez. Tüm akışlar, kataloglar ve meta veriler, kendinizin yapılandırdığı servislerden ve sağlayıcılardan gelir; bunlara erişmek için gerekli haklara veya aboneliklere sahip olmaktan, bu servislerin koşullarına ve ülkenizin yasalarına uymaktan yalnızca siz sorumlusunuz.\n\nDağıtım: bu uygulama Google Play üzerinden dağıtılmaz; Google ile bağlantılı değildir, Google tarafından desteklenmez veya onaylanmaz. Android, Android Auto ve Google Cast, Google LLC\'nin ticari markalarıdır.</string>
+    <string name="legal_notice">ParafusoTV ücretsiz olarak, “olduğu gibi” ve açık veya zımni her türlü garanti olmaksızın sunulur; ticari elverişlilik, belirli bir amaca uygunluk ve üçüncü kişi haklarını ihlal etmeme garantileri dahil ancak bunlarla sınırlı olmamak üzere.\n\nYasanın izin verdiği en geniş ölçüde, yazarlar ve katkıda bulunanlar; uygulamadan veya kullanımından kaynaklanan ya da bunlarla bağlantılı tüm talepler, hasarlar, kayıplar ve diğer yükümlülükler için sorumluluk kabul etmez; bunlar dahil ancak bunlarla sınırlı olmamak üzere: veri veya cihaz kaybı ya da hasarı, hizmet kesintisi, uygulama çökmeleri veya hataları, ağ veya içerik sağlayıcılarınızın yansıttığı ücretler ya da uygulamayı kullanımınızdan doğan herhangi bir ceza, para cezası veya kovuşturma.\n\nSürüş: araç içinde video oynatımı yalnızca aracın durması veya yolcu ekranı kullanımı içindir. Sürüş sırasında video izlemek çoğu yargı bölgesinde yasa dışıdır. ParafusoTV hareketi algılayıp videoyu otomatik olarak kapatmayı dener, ancak bu algılama uygulamanın kontrolü dışındaki donanıma, izinlere ve sinyallere bağlıdır; başarısız olabilir ya da kullanılamayabilir. Buna güvenmemelisiniz. Sürücü, geçerli tüm trafik kurallarına uyulmasından tek başına sorumludur.\n\nİçerik: ParafusoTV bir oynatıcıdır. Kendi içeriğini barındırmaz, sağlamaz ve dizinlemez. Tüm akışlar, kataloglar ve meta veriler, kendinizin yapılandırdığı servislerden ve sağlayıcılardan gelir; bunlara erişmek için gerekli haklara veya aboneliklere sahip olmaktan, bu servislerin koşullarına ve ülkenizin yasalarına uymaktan yalnızca siz sorumlusunuz.\n\nDağıtım: bu uygulama Google Play üzerinden dağıtılmaz; Google ile bağlantılı değildir, Google tarafından desteklenmez veya onaylanmaz. Android, Android Auto ve Google Cast, Google LLC\'nin ticari markalarıdır.</string>
     <string name="rec">REC</string>
     <string name="versions">Sürümler</string>
     <string name="fit">Sığdır</string>
@@ -162,7 +162,7 @@
     <string name="group_channels">Yinelenen kanalları grupla</string>
     <string name="set_parental_pin">Ebeveyn PIN\'i ayarla</string>
     <string name="clear_watch_history">İzleme geçmişini temizle</string>
-    <string name="plugins_description">Özellikler ekleyen küçük betikler - sağlayıcı bulma veya akış arama. Hiçbir şey ayrı bir uygulama olarak kurulmaz; bir betik Lumora içinde çalışır ve önerdiği her şey yalnızca siz onaylarsanız kullanılır.</string>
+    <string name="plugins_description">Özellikler ekleyen küçük betikler - sağlayıcı bulma veya akış arama. Hiçbir şey ayrı bir uygulama olarak kurulmaz; bir betik ParafusoTV içinde çalışır ve önerdiği her şey yalnızca siz onaylarsanız kullanılır.</string>
     <string name="add_a_plugin">EKLENTİ EKLE</string>
     <string name="install_from_url">URL\'den Ekle</string>
     <string name="enter_apk_link">Bir eklenti betiği bağlantısı girin</string>
@@ -175,12 +175,10 @@
     <string name="results">SONUÇLAR</string>
     <string name="version">Sürüm</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">Uygulama</string>
     <string name="about_platform_label">Platform</string>
     <string name="about_platform_value">Android · TV + telefon</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Güncellemeleri Kontrol Et</string>
 
     <!-- dialog_search.xml -->

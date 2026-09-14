@@ -1857,6 +1857,10 @@ private fun MainActivity.showMobileMorePanel() {
     moreView.findViewById<View>(R.id.mobileMoreSettings).setOnClickListener {
         leaveMore { showProviderSettings() }
     }
+
+    moreView.findViewById<View>(R.id.mobileMoreAbout).setOnClickListener {
+        leaveMore { showProviderSettings(9) }
+    }
     moreView.findViewById<View>(R.id.mobileMoreRefresh).setOnClickListener {
         leaveMore { binding.btnRefresh.performClick() }
     }

@@ -463,7 +463,7 @@ internal fun MainActivity.collapseSettingsRail() {
  *  Typeface constructor is API 28+, so this hand-rolled span keeps minSdk 25 happy.) */
 
 @Suppress("DEPRECATION")
-internal fun MainActivity.showProviderSettings() {
+internal fun MainActivity.showProviderSettings(initialSection: Int = 0) {
     // Already open: unticking the last provider or plugin from inside Settings reloads, and
     // that load's "nothing configured" branch calls straight back in here - which would
     // inflate a second settings tree on top of the live one, leaving the first orphaned
@@ -1785,7 +1785,7 @@ internal fun MainActivity.showProviderSettings() {
     // that is about to disappear. Re-applied on rotation from onConfigurationChanged.
     // dialogView is passed because activeSettingsOverlay is not assigned until show().
     applySettingsRailVisibility(dialogView)
-    selectSection(0)
+    selectSection(initialSection.coerceIn(navRows.indices))
 
     // A TV box has nowhere meaningful to browse a downloaded file (same reasoning
     // as the Downloads tab being mobile-only).
@@ -1820,18 +1820,50 @@ internal fun MainActivity.showProviderSettings() {
     } catch (e: Exception) { getString(R.string.sett_unknown) }
     dialogView.findViewById<View>(R.id.settingsGithubLink).setOnClickListener {
         try {
-            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://github.com/disclosurez/Lumora")))
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://github.com/visualnew/ParafusoTV")))
         } catch (e: android.content.ActivityNotFoundException) {
             Toast.makeText(this, getString(R.string.sett_no_browser_available), Toast.LENGTH_SHORT).show()
         }
     }
-    dialogView.findViewById<View>(R.id.settingsDiscordLink).setOnClickListener {
+    dialogView.findViewById<View>(R.id.settingsDeveloperLink).setOnClickListener {
         try {
-            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://discord.gg/lumora")))
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://jonathan.ws")))
         } catch (e: android.content.ActivityNotFoundException) {
             Toast.makeText(this, getString(R.string.sett_no_browser_available), Toast.LENGTH_SHORT).show()
         }
     }
+
+    dialogView.findViewById<View>(R.id.settingsVisualnewLink).setOnClickListener {
+        try {
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://visualnew.com/parafusotv")))
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.sett_no_browser_available), Toast.LENGTH_SHORT).show()
+        }
+    }
+    dialogView.findViewById<View>(R.id.settingsInstagramLink).setOnClickListener {
+        try {
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://instagram.com/visualnew")))
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.sett_no_browser_available), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    dialogView.findViewById<View>(R.id.settingsFacebookLink).setOnClickListener {
+        try {
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://facebook.com/visualnew")))
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.sett_no_browser_available), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    dialogView.findViewById<View>(R.id.settingsYoutubeLink).setOnClickListener {
+        try {
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://youtube.com/@visualnew")))
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.sett_no_browser_available), Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val checkUpdateLabel = dialogView.findViewById<TextView>(R.id.settingsCheckUpdateLabel)
     dialogView.findViewById<View>(R.id.settingsCheckUpdate).setOnClickListener {
         checkUpdateLabel.text = getString(R.string.sett_checking)

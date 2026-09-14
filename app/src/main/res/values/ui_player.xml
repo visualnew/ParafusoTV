@@ -34,7 +34,7 @@
     <string name="play_record_for_2_hours">Record for 2 hours</string>
     <string name="play_recording_scheduled">Recording scheduled</string>
     <string name="play_playback_error">Playback error</string>
-    <string name="play_stream_error_reason">Lumora couldn\'t play this stream (%1$s).</string>
+    <string name="play_stream_error_reason">ParafusoTV couldn\'t play this stream (%1$s).</string>
     <string name="play_aspect_zoom">Zoom</string>
     <string name="play_aspect_stretch">Stretch</string>
     <string name="play_video_label">Video: %1$s</string>
@@ -80,7 +80,7 @@
     <string name="play_external_player_ask_every_time">External player: ask every time</string>
     <string name="play_external_player_label">External player: %1$s</string>
     <string name="play_in_another_app">Play in another app?</string>
-    <string name="play_suggest_body">%1$s\n\nAnother video player on this device (VLC, MX Player…) may handle it - Lumora can hand the stream over at the current position.</string>
+    <string name="play_suggest_body">%1$s\n\nAnother video player on this device (VLC, MX Player…) may handle it - ParafusoTV can hand the stream over at the current position.</string>
     <string name="play_stay_here">Stay here</string>
     <string name="play_dont_ask_again">Don\'t ask again</string>
     <string name="play_turn_back_on_settings">Turn back on in Settings &gt; Playback Settings</string>

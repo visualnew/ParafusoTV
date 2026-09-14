@@ -92,10 +92,10 @@
 
     <!-- 모든 세션이 시작될 때 차량 화면과 휴대전화의 설정에 표시됩니다. 차량 내비게이션이 문장
          중간에 자르지 않도록 충분히 짧게 유지합니다. -->
-    <string name="car_disclaimer">운전 중에는 영상을 시청하지 마세요.\n\n영상은 Lumora가 차량이 정지 상태임을 확인할 수 있을 때에만 재생됩니다. 움직임이 감지되면 화면이 꺼지고 소리는 계속됩니다.\n\n이 앱은 “있는 그대로” 제공되며, 보증이 없고 손실, 손상, 처벌 또는 이러한 컨트롤의 오작동에 대해 어떠한 책임도 지지 않습니다. 법에 따라 사용하세요.</string>
+    <string name="car_disclaimer">운전 중에는 영상을 시청하지 마세요.\n\n영상은 ParafusoTV가 차량이 정지 상태임을 확인할 수 있을 때에만 재생됩니다. 움직임이 감지되면 화면이 꺼지고 소리는 계속됩니다.\n\n이 앱은 “있는 그대로” 제공되며, 보증이 없고 손실, 손상, 처벌 또는 이러한 컨트롤의 오작동에 대해 어떠한 책임도 지지 않습니다. 법에 따라 사용하세요.</string>
 
     <string name="legal_notice_title">법적 &amp; 안전 고지</string>
-    <string name="legal_notice">Lumora는 무료로 제공되며, “있는 그대로” 제공되고 명시적 또는 묵시적 보증 없이 제공됩니다. 여기에는 상품성, 특정 목적에의 적합성 및 권리 침해 없음에 대한 보증이 포함되지만 이에 국한되지 않습니다.\n\n법이 허용하는 최대 범위 내에서 저자와 기여자는 앱 또는 그 사용으로 인해 발생하거나 이와 관련된 모든 청구, 손해, 손실 또는 기타 책임에 대해 책임을 지지 않습니다. 여기에는 데이터 또는 기기의 손실이나 손상, 서비스 중단, 앱 충돌 또는 오류, 네트워크 또는 콘텐츠 제공업체가 부과하는 요금, 또는 앱 사용으로 인한 모든 처벌, 벌금 또는 기소가 포함되지만 이에 국한되지 않습니다.\n\n운전: 차량 내 영상 재생은 정지된 차량 또는 승객용 화면에서만 사용하도록 되어 있습니다. 운전 중 영상 시청은 대부분의 국가에서 불법입니다. Lumora는 움직임을 감지하여 영상을 자동으로 끄도록 시도하지만, 이 감지는 앱이 통제할 수 없는 하드웨어, 권한 및 신호에 의존하며 실패하거나 사용할 수 없을 수도 있습니다. 이에 의존해서는 안 됩니다. 운전자는 모든 관련 도로교통법을 준수할 전적인 책임을 집니다.\n\n콘텐츠: Lumora는 플레이어입니다. 자체 콘텐츠를 호스팅, 제공 또는 색인하지 않습니다. 모든 스트림, 카탈로그 및 메타데이터는 사용자가 직접 구성하는 서비스와 제공업체에서 제공되며, 접근에 필요한 권리 또는 구독을 보유하고 해당 서비스의 약관과 해당 국가의 법률을 준수할 책임은 전적으로 사용자에게 있습니다.\n\n배포: 이 앱은 Google Play를 통해 배포되지 않으며 Google과 제휴하거나 Google의 승인 또는 인증을 받지 않았습니다. Android, Android Auto 및 Google Cast는 Google LLC의 상표입니다.</string>
+    <string name="legal_notice">ParafusoTV는 무료로 제공되며, “있는 그대로” 제공되고 명시적 또는 묵시적 보증 없이 제공됩니다. 여기에는 상품성, 특정 목적에의 적합성 및 권리 침해 없음에 대한 보증이 포함되지만 이에 국한되지 않습니다.\n\n법이 허용하는 최대 범위 내에서 저자와 기여자는 앱 또는 그 사용으로 인해 발생하거나 이와 관련된 모든 청구, 손해, 손실 또는 기타 책임에 대해 책임을 지지 않습니다. 여기에는 데이터 또는 기기의 손실이나 손상, 서비스 중단, 앱 충돌 또는 오류, 네트워크 또는 콘텐츠 제공업체가 부과하는 요금, 또는 앱 사용으로 인한 모든 처벌, 벌금 또는 기소가 포함되지만 이에 국한되지 않습니다.\n\n운전: 차량 내 영상 재생은 정지된 차량 또는 승객용 화면에서만 사용하도록 되어 있습니다. 운전 중 영상 시청은 대부분의 국가에서 불법입니다. ParafusoTV는 움직임을 감지하여 영상을 자동으로 끄도록 시도하지만, 이 감지는 앱이 통제할 수 없는 하드웨어, 권한 및 신호에 의존하며 실패하거나 사용할 수 없을 수도 있습니다. 이에 의존해서는 안 됩니다. 운전자는 모든 관련 도로교통법을 준수할 전적인 책임을 집니다.\n\n콘텐츠: ParafusoTV는 플레이어입니다. 자체 콘텐츠를 호스팅, 제공 또는 색인하지 않습니다. 모든 스트림, 카탈로그 및 메타데이터는 사용자가 직접 구성하는 서비스와 제공업체에서 제공되며, 접근에 필요한 권리 또는 구독을 보유하고 해당 서비스의 약관과 해당 국가의 법률을 준수할 책임은 전적으로 사용자에게 있습니다.\n\n배포: 이 앱은 Google Play를 통해 배포되지 않으며 Google과 제휴하거나 Google의 승인 또는 인증을 받지 않았습니다. Android, Android Auto 및 Google Cast는 Google LLC의 상표입니다.</string>
     <string name="rec">REC</string>
     <string name="versions">버전</string>
     <string name="fit">맞추기</string>
@@ -161,7 +161,7 @@
     <string name="group_channels">중복 채널 그룹화</string>
     <string name="set_parental_pin">자녀 보호 PIN 설정</string>
     <string name="clear_watch_history">시청 기록 지우기</string>
-    <string name="plugins_description">기능을 추가하는 작은 스크립트 - 제공업체를 찾거나 스트림을 검색합니다. 별도의 앱으로 설치되는 것은 없으며, 스크립트는 Lumora 내부에서 실행되고, 스크립트가 제안하는 모든 것은 사용자가 확인한 경우에만 사용됩니다.</string>
+    <string name="plugins_description">기능을 추가하는 작은 스크립트 - 제공업체를 찾거나 스트림을 검색합니다. 별도의 앱으로 설치되는 것은 없으며, 스크립트는 ParafusoTV 내부에서 실행되고, 스크립트가 제안하는 모든 것은 사용자가 확인한 경우에만 사용됩니다.</string>
     <string name="add_a_plugin">플러그인 추가</string>
     <string name="install_from_url">URL에서 추가</string>
     <string name="enter_apk_link">플러그인 스크립트 링크 입력</string>
@@ -174,12 +174,10 @@
     <string name="results">결과</string>
     <string name="version">버전</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">앱</string>
     <string name="about_platform_label">플랫폼</string>
     <string name="about_platform_value">Android · TV + 휴대전화</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">업데이트 확인</string>
 
     <!-- dialog_search.xml -->

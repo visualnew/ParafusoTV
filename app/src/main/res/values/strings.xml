@@ -204,12 +204,23 @@
     <string name="results">RESULTS</string>
     <string name="version">Version</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/ParafusoTV</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">App</string>
     <string name="about_platform_label">Platform</string>
     <string name="about_platform_value">Android · TV + phone</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
+    <string name="developer_label">Developer</string>
+    <string name="developer_name">Jonathan Tavares</string>
+    <string name="developer_url">jonathan.ws</string>
+    <string name="developer_value">Jonathan Tavares · jonathan.ws</string>
+    <string name="produced_by_label">Developed by</string>
+    <string name="produced_by_name">Visualnew</string>
+    <string name="official_site_url">visualnew.com/parafusotv</string>
+    <string name="instagram">Instagram</string>
+    <string name="instagram_url">instagram.com/visualnew</string>
+    <string name="facebook">Facebook</string>
+    <string name="facebook_url">facebook.com/visualnew</string>
+    <string name="youtube">YouTube</string>
+    <string name="youtube_url">youtube.com/@visualnew</string>
     <string name="check_for_updates">Check for Updates</string>
 
     <!-- dialog_search.xml -->

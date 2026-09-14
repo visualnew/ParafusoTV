@@ -94,10 +94,10 @@
     <!-- Wordt aan het begin van elke sessie op het autoscherm getoond en in Instellingen op
          de telefoon. Kort genoeg gehouden zodat een head unit het niet midden in een zin
          afkapt. -->
-    <string name="car_disclaimer">Kijk geen video terwijl je rijdt.\n\nVideo wordt alleen afgespeeld wanneer Lumora kan bevestigen dat de auto stilstaat. Bij elke beweging gaat het beeld uit en blijft het geluid doorgaan.\n\nWordt geleverd “zoals het is”, zonder garantie en zonder aansprakelijkheid voor enig verlies, schade, boete of het falen van deze bedieningselementen. Gebruik dit legaal.</string>
+    <string name="car_disclaimer">Kijk geen video terwijl je rijdt.\n\nVideo wordt alleen afgespeeld wanneer ParafusoTV kan bevestigen dat de auto stilstaat. Bij elke beweging gaat het beeld uit en blijft het geluid doorgaan.\n\nWordt geleverd “zoals het is”, zonder garantie en zonder aansprakelijkheid voor enig verlies, schade, boete of het falen van deze bedieningselementen. Gebruik dit legaal.</string>
 
     <string name="legal_notice_title">Juridische &amp; veiligheidsmededeling</string>
-    <string name="legal_notice">Lumora wordt gratis aangeboden, “zoals het is” en zonder enige garantie, expliciet of impliciet, waaronder maar niet beperkt tot garanties van verkoopbaarheid, geschiktheid voor een bepaald doel en niet-inbreuk.\n\nVoor zover de wet dit toestaat, aanvaarden de auteurs en bijdragers geen aansprakelijkheid voor enige vordering, schade, verlies of andere aansprakelijkheid die voortvloeit uit of verband houdt met de app of het gebruik ervan, waaronder maar niet beperkt tot: verlies van of schade aan gegevens of apparaten, onderbreking van de dienst, crashes of fouten van de app, kosten die door je netwerk- of contentprovider in rekening worden gebracht, of enige boete, straf of vervolging als gevolg van je gebruik van de app.\n\nRijden: het afspelen van video in een voertuig is uitsluitend bedoeld voor een stilstaand voertuig of een passagiersscherm. Tijdens het rijden naar video kijken is in de meeste rechtsgebieden illegaal. Lumora probeert beweging te detecteren en de video automatisch uit te schakelen, maar deze detectie is afhankelijk van hardware, machtigingen en signalen buiten de controle van de app en kan mislukken of niet beschikbaar zijn. Je mag er niet op vertrouwen. De bestuurder blijft als enige verantwoordelijk voor naleving van alle toepasselijke verkeerswetten.\n\nInhoud: Lumora is een speler. Het host, verstrekt en indexeert geen eigen inhoud. Alle streams, catalogi en metadata komen van diensten en providers die je zelf configureert, en je bent als enige verantwoordelijk voor het bezitten van de rechten of abonnementen die nodig zijn om er toegang toe te krijgen, en voor het naleven van de voorwaarden van die diensten en de wetten van je land.\n\nDistributie: deze app wordt niet via Google Play gedistribueerd en is niet verbonden met, goedgekeurd door of gecertificeerd door Google. Android, Android Auto en Google Cast zijn handelsmerken van Google LLC.</string>
+    <string name="legal_notice">ParafusoTV wordt gratis aangeboden, “zoals het is” en zonder enige garantie, expliciet of impliciet, waaronder maar niet beperkt tot garanties van verkoopbaarheid, geschiktheid voor een bepaald doel en niet-inbreuk.\n\nVoor zover de wet dit toestaat, aanvaarden de auteurs en bijdragers geen aansprakelijkheid voor enige vordering, schade, verlies of andere aansprakelijkheid die voortvloeit uit of verband houdt met de app of het gebruik ervan, waaronder maar niet beperkt tot: verlies van of schade aan gegevens of apparaten, onderbreking van de dienst, crashes of fouten van de app, kosten die door je netwerk- of contentprovider in rekening worden gebracht, of enige boete, straf of vervolging als gevolg van je gebruik van de app.\n\nRijden: het afspelen van video in een voertuig is uitsluitend bedoeld voor een stilstaand voertuig of een passagiersscherm. Tijdens het rijden naar video kijken is in de meeste rechtsgebieden illegaal. ParafusoTV probeert beweging te detecteren en de video automatisch uit te schakelen, maar deze detectie is afhankelijk van hardware, machtigingen en signalen buiten de controle van de app en kan mislukken of niet beschikbaar zijn. Je mag er niet op vertrouwen. De bestuurder blijft als enige verantwoordelijk voor naleving van alle toepasselijke verkeerswetten.\n\nInhoud: ParafusoTV is een speler. Het host, verstrekt en indexeert geen eigen inhoud. Alle streams, catalogi en metadata komen van diensten en providers die je zelf configureert, en je bent als enige verantwoordelijk voor het bezitten van de rechten of abonnementen die nodig zijn om er toegang toe te krijgen, en voor het naleven van de voorwaarden van die diensten en de wetten van je land.\n\nDistributie: deze app wordt niet via Google Play gedistribueerd en is niet verbonden met, goedgekeurd door of gecertificeerd door Google. Android, Android Auto en Google Cast zijn handelsmerken van Google LLC.</string>
     <string name="rec">REC</string>
     <string name="versions">Versies</string>
     <string name="fit">Passend maken</string>
@@ -164,7 +164,7 @@
     <string name="group_channels">Dubbele kanalen groeperen</string>
     <string name="set_parental_pin">Ouderlijke pincode instellen</string>
     <string name="clear_watch_history">Kijkgeschiedenis wissen</string>
-    <string name="plugins_description">Kleine scripts die functies toevoegen - providers vinden of zoeken naar streams. Er wordt niets als aparte app geïnstalleerd; een script draait binnen Lumora, en alles wat het voorstelt wordt alleen gebruikt als je het bevestigt.</string>
+    <string name="plugins_description">Kleine scripts die functies toevoegen - providers vinden of zoeken naar streams. Er wordt niets als aparte app geïnstalleerd; een script draait binnen ParafusoTV, en alles wat het voorstelt wordt alleen gebruikt als je het bevestigt.</string>
     <string name="add_a_plugin">EEN PLUGIN TOEVOEGEN</string>
     <string name="install_from_url">Toevoegen vanaf URL</string>
     <string name="enter_apk_link">Voer een plugin-scriptlink in</string>
@@ -177,12 +177,10 @@
     <string name="results">RESULTATEN</string>
     <string name="version">Versie</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">App</string>
     <string name="about_platform_label">Platform</string>
     <string name="about_platform_value">Android · tv + telefoon</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Controleren op updates</string>
 
     <!-- dialog_search.xml -->

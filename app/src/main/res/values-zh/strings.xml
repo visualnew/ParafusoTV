@@ -92,10 +92,10 @@
 
     <!-- 每次会话开始时显示在车载屏幕上，也显示在手机上的设置中。
          文本保持简短，以免车载主机在句子中间截断。 -->
-    <string name="car_disclaimer">驾驶时请勿观看视频。\n\n只有当 Lumora 确认车辆已停稳时，视频才会播放。一旦车辆有任何移动，画面将关闭而声音继续。\n\n本功能"按现状"提供，不作任何担保，对任何损失、损害、处罚或这些控件的失效不承担任何责任。请合法使用。</string>
+    <string name="car_disclaimer">驾驶时请勿观看视频。\n\n只有当 ParafusoTV 确认车辆已停稳时，视频才会播放。一旦车辆有任何移动，画面将关闭而声音继续。\n\n本功能"按现状"提供，不作任何担保，对任何损失、损害、处罚或这些控件的失效不承担任何责任。请合法使用。</string>
 
     <string name="legal_notice_title">法律与安全声明</string>
-    <string name="legal_notice">Lumora 免费提供，"按现状"且不含任何明示或暗示的担保，包括但不限于适销性、特定用途适用性及不侵权的担保。\n\n在法律允许的最大范围内，作者和贡献者不对因本应用或其使用引起或与之相关的任何索赔、损害、损失或其他责任承担责任，包括但不限于：数据或设备丢失或损坏、服务中断、应用崩溃或错误、您的网络或内容提供商产生的费用，或因您使用本应用而产生的任何处罚、罚款或起诉。\n\n驾驶：在车辆中播放视频仅适用于车辆静止时或乘客显示屏。在大多数司法管辖区，驾驶时观看视频属违法行为。Lumora 会尝试检测运动并自动禁用视频，但此检测依赖应用控制之外的硬件、权限和信号，可能失败或不可用。您不得依赖此功能。驾驶员仍然全权负责遵守所有适用的道路交通法规。\n\n内容：Lumora 是一个播放器。它本身不托管、不提供、不索引任何内容。所有流、目录和元数据均来自您自行配置的服务和提供商，您须自行负责持有访问它们所需的权利或订阅，并遵守这些服务的条款和您所在国家的法律。\n\n分发：本应用不通过 Google Play 分发，与 Google 无关联、未经 Google 认可或认证。Android、Android Auto 和 Google Cast 是 Google LLC 的商标。</string>
+    <string name="legal_notice">ParafusoTV 免费提供，"按现状"且不含任何明示或暗示的担保，包括但不限于适销性、特定用途适用性及不侵权的担保。\n\n在法律允许的最大范围内，作者和贡献者不对因本应用或其使用引起或与之相关的任何索赔、损害、损失或其他责任承担责任，包括但不限于：数据或设备丢失或损坏、服务中断、应用崩溃或错误、您的网络或内容提供商产生的费用，或因您使用本应用而产生的任何处罚、罚款或起诉。\n\n驾驶：在车辆中播放视频仅适用于车辆静止时或乘客显示屏。在大多数司法管辖区，驾驶时观看视频属违法行为。ParafusoTV 会尝试检测运动并自动禁用视频，但此检测依赖应用控制之外的硬件、权限和信号，可能失败或不可用。您不得依赖此功能。驾驶员仍然全权负责遵守所有适用的道路交通法规。\n\n内容：ParafusoTV 是一个播放器。它本身不托管、不提供、不索引任何内容。所有流、目录和元数据均来自您自行配置的服务和提供商，您须自行负责持有访问它们所需的权利或订阅，并遵守这些服务的条款和您所在国家的法律。\n\n分发：本应用不通过 Google Play 分发，与 Google 无关联、未经 Google 认可或认证。Android、Android Auto 和 Google Cast 是 Google LLC 的商标。</string>
     <string name="rec">REC</string>
     <string name="versions">版本</string>
     <string name="fit">适应</string>
@@ -161,7 +161,7 @@
     <string name="group_channels">合并重复频道</string>
     <string name="set_parental_pin">设置家长 PIN 码</string>
     <string name="clear_watch_history">清除观看历史</string>
-    <string name="plugins_description">添加功能的小型脚本 - 查找提供商或搜索流。无需安装为独立应用；脚本在 Lumora 内部运行，其提出的任何内容仅在您确认后才会使用。</string>
+    <string name="plugins_description">添加功能的小型脚本 - 查找提供商或搜索流。无需安装为独立应用；脚本在 ParafusoTV 内部运行，其提出的任何内容仅在您确认后才会使用。</string>
     <string name="add_a_plugin">添加插件</string>
     <string name="install_from_url">从 URL 添加</string>
     <string name="enter_apk_link">输入插件脚本链接</string>
@@ -174,12 +174,10 @@
     <string name="results">结果</string>
     <string name="version">版本</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">应用</string>
     <string name="about_platform_label">平台</string>
     <string name="about_platform_value">Android · TV + 手机</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">检查更新</string>
 
     <!-- dialog_search.xml -->

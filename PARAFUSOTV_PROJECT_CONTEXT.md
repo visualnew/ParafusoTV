@@ -390,3 +390,69 @@ Primeiro ler e analisar a arquitetura existente e este documento.
 Depois apresentar um plano técnico para a ParafusoTV 2.0, especialmente para a separação entre interface de TV e smartphone.
 
 A implementação somente deve começar após aprovação do plano.
+
+## Estado atual do projeto — setembro de 2026
+
+A ParafusoTV 2.0 já possui as principais funcionalidades previstas e encontra-se em fase final de acabamento.
+
+### Fases concluídas
+
+- Fase 1: arquitetura compartilhada
+- Fase 2: classificação de dispositivo e shells TV/mobile
+- Fase 3: perfis, PIN, preferências por perfil e backup essencial
+- Fase 4: experiência de TV
+- Fase 5: experiência mobile
+- Fase 6: player e orientação
+- Fase 7: provedores, refresh, EPG e robustez de catálogo
+
+Último commit estável da Fase 7:
+
+`81699be — Fase 7.4a: preserva catálogo em falha de refresh global`
+
+### Decisão sobre a Fase 7.4b
+
+A tentativa de introduzir uma nova identidade local para evitar colisões de IDs entre múltiplos provedores foi abandonada.
+
+Motivo:
+- o patch era transversal;
+- afetava diversas partes já estáveis;
+- introduziu regressão real na navegação de TV ao vivo no Fire TV;
+- o usuário pretende utilizar normalmente apenas um provedor/lista;
+- o custo e o risco da mudança superavam o benefício real.
+
+A implementação 7.4b-1 foi totalmente revertida antes de commit.
+
+Não retomar essa refatoração sem uma necessidade real comprovada.
+
+### Feature freeze
+
+A partir deste ponto, o projeto entra em feature freeze.
+
+Não:
+- criar novas arquiteturas;
+- fazer refatorações preventivas;
+- alterar componentes estáveis por riscos teóricos;
+- ampliar funcionalidades sem necessidade concreta.
+
+Só modificar o aplicativo por:
+1. bug real reproduzível;
+2. problema visual claramente perceptível;
+3. requisito indispensável ainda ausente.
+
+### Próximas fases
+
+Fase 8 — acabamento final enxuto:
+- revisar apenas elementos visíveis herdados do Lumora;
+- branding ParafusoTV;
+- tela Sobre;
+- manter Gravações como “Em desenvolvimento”;
+- não desmontar o motor de plugins se estiver funcionando;
+- preservar avisos/licenças de terceiros necessários.
+
+Fase 9 — fechamento:
+- testes finais em Moto G56 e Fire TV;
+- corrigir apenas bugs reais encontrados;
+- gerar checkpoint final alpha;
+- preparar ParafusoTV 2.0 para encerramento do desenvolvimento principal.
+
+Objetivo atual: terminar o aplicativo rapidamente, preservando estabilidade.

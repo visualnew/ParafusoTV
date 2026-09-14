@@ -34,7 +34,7 @@
     <string name="play_record_for_2_hours">Enregistrer pendant 2 heures</string>
     <string name="play_recording_scheduled">Enregistrement programmé</string>
     <string name="play_playback_error">Erreur de lecture</string>
-    <string name="play_stream_error_reason">Lumora n\'a pas pu lire ce flux (%1$s).</string>
+    <string name="play_stream_error_reason">ParafusoTV n\'a pas pu lire ce flux (%1$s).</string>
     <string name="play_aspect_zoom">Zoom</string>
     <string name="play_aspect_stretch">Étirer</string>
     <string name="play_video_label">Vidéo : %1$s</string>
@@ -77,7 +77,7 @@
     <string name="play_external_player_ask_every_time">Lecteur externe : demander à chaque fois</string>
     <string name="play_external_player_label">Lecteur externe : %1$s</string>
     <string name="play_in_another_app">Lire dans une autre application ?</string>
-    <string name="play_suggest_body">%1$s\n\nUn autre lecteur vidéo de cet appareil (VLC, MX Player…) peut peut-être le lire - Lumora peut lui confier le flux à la position actuelle.</string>
+    <string name="play_suggest_body">%1$s\n\nUn autre lecteur vidéo de cet appareil (VLC, MX Player…) peut peut-être le lire - ParafusoTV peut lui confier le flux à la position actuelle.</string>
     <string name="play_stay_here">Rester ici</string>
     <string name="play_dont_ask_again">Ne plus demander</string>
     <string name="play_turn_back_on_settings">Réactivez-le dans Paramètres &gt; Lecture</string>

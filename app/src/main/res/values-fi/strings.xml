@@ -93,10 +93,10 @@
 
     <!-- Näytetään autonäytöllä jokaisen istunnon alussa ja puhelimen asetuksissa.
          Pidetään riittävän lyhyenä, jotta auton näyttö ei katkaise sitä kesken lauseen. -->
-    <string name="car_disclaimer">Älä katso videota ajon aikana.\n\nVideo toistuu vain, kun Lumora voi vahvistaa, että auto on pysähtynyt. Liikkeen havaitessa kuva sammuu ja ääni jatkuu.\n\nTarjotaan ”sellaisenaan”, ilman takuuta ja ilman vastuuta mistään menetyksestä, vahingosta, seuraamuksesta tai näiden hallintalaitteiden toimintahäiriöstä. Käytä laillisesti.</string>
+    <string name="car_disclaimer">Älä katso videota ajon aikana.\n\nVideo toistuu vain, kun ParafusoTV voi vahvistaa, että auto on pysähtynyt. Liikkeen havaitessa kuva sammuu ja ääni jatkuu.\n\nTarjotaan ”sellaisenaan”, ilman takuuta ja ilman vastuuta mistään menetyksestä, vahingosta, seuraamuksesta tai näiden hallintalaitteiden toimintahäiriöstä. Käytä laillisesti.</string>
 
     <string name="legal_notice_title">Lakisääteinen &amp; turvallisuusilmoitus</string>
-    <string name="legal_notice">Lumora tarjotaan maksutta, ”sellaisenaan” ja ilman minkäänlaisia takuita, nimenomaisia tai hiljaisia, mukaan lukien mutta ei rajoittuen takuisiin myyntikelpoisuudesta, soveltuvuudesta tiettyyn tarkoitukseen ja kolmansien oikeuksien loukkaamattomuudesta.\n\nLain sallimassa enimmäislaajuudessa tekijät ja avustajat eivät vastaa mistään vaateesta, vahingosta, menetyksestä tai muusta vastuusta, joka aiheutuu sovelluksesta tai sen käytöstä tai liittyy siihen, mukaan lukien mutta ei rajoittuen: tietojen tai laitteiden menetys tai vahingoittuminen, palvelukatkokset, sovelluksen kaatumiset tai virheet, verkko- tai sisällöntarjoajasi veloittamat maksut taikka mikä tahansa seuraamus, sakko tai syyte, joka johtuu sovelluksen käytöstäsi.\n\nAjoneuvon käyttö: videon toistaminen ajoneuvossa on tarkoitettu vain pysäköidylle ajoneuvolle tai matkustajan näytölle. Videon katsominen ajon aikana on laitonta useimmissa lainkäyttöalueissa. Lumora yrittää havaita liikkeen ja poistaa videon käytöstä automaattisesti, mutta tämä havaitseminen riippuu laitteistosta, käyttöoikeuksista ja signaaleista, jotka ovat sovelluksen hallinnan ulkopuolella, ja se voi epäonnistua tai olla käytettävissä. Siihen ei saa luottaa. Kuljettaja on yksin vastuussa kaikkien sovellettavien tieliikennelakien noudattamisesta.\n\nSisältö: Lumora on soitin. Se ei isännöi, tarjoa eikä indeksoi omaa sisältöä. Kaikki striimit, luettelot ja metatiedot tulevat palveluista ja palveluntarjoajista, jotka määrität itse, ja olet yksin vastuussa tarvittavien oikeuksien tai tilausten hallussapidosta sekä näiden palvelujen ehtojen ja maasi lakien noudattamisesta.\n\nJakelu: tätä sovellusta ei jaeta Google Playn kautta, eikä se ole yhteydessä Googleen, Googlen hyväksymä tai Googlen sertifioima. Android, Android Auto ja Google Cast ovat Google LLC:n tavaramerkkejä.</string>
+    <string name="legal_notice">ParafusoTV tarjotaan maksutta, ”sellaisenaan” ja ilman minkäänlaisia takuita, nimenomaisia tai hiljaisia, mukaan lukien mutta ei rajoittuen takuisiin myyntikelpoisuudesta, soveltuvuudesta tiettyyn tarkoitukseen ja kolmansien oikeuksien loukkaamattomuudesta.\n\nLain sallimassa enimmäislaajuudessa tekijät ja avustajat eivät vastaa mistään vaateesta, vahingosta, menetyksestä tai muusta vastuusta, joka aiheutuu sovelluksesta tai sen käytöstä tai liittyy siihen, mukaan lukien mutta ei rajoittuen: tietojen tai laitteiden menetys tai vahingoittuminen, palvelukatkokset, sovelluksen kaatumiset tai virheet, verkko- tai sisällöntarjoajasi veloittamat maksut taikka mikä tahansa seuraamus, sakko tai syyte, joka johtuu sovelluksen käytöstäsi.\n\nAjoneuvon käyttö: videon toistaminen ajoneuvossa on tarkoitettu vain pysäköidylle ajoneuvolle tai matkustajan näytölle. Videon katsominen ajon aikana on laitonta useimmissa lainkäyttöalueissa. ParafusoTV yrittää havaita liikkeen ja poistaa videon käytöstä automaattisesti, mutta tämä havaitseminen riippuu laitteistosta, käyttöoikeuksista ja signaaleista, jotka ovat sovelluksen hallinnan ulkopuolella, ja se voi epäonnistua tai olla käytettävissä. Siihen ei saa luottaa. Kuljettaja on yksin vastuussa kaikkien sovellettavien tieliikennelakien noudattamisesta.\n\nSisältö: ParafusoTV on soitin. Se ei isännöi, tarjoa eikä indeksoi omaa sisältöä. Kaikki striimit, luettelot ja metatiedot tulevat palveluista ja palveluntarjoajista, jotka määrität itse, ja olet yksin vastuussa tarvittavien oikeuksien tai tilausten hallussapidosta sekä näiden palvelujen ehtojen ja maasi lakien noudattamisesta.\n\nJakelu: tätä sovellusta ei jaeta Google Playn kautta, eikä se ole yhteydessä Googleen, Googlen hyväksymä tai Googlen sertifioima. Android, Android Auto ja Google Cast ovat Google LLC:n tavaramerkkejä.</string>
     <string name="rec">REC</string>
     <string name="versions">Versiot</string>
     <string name="fit">Sovita</string>
@@ -162,7 +162,7 @@
     <string name="group_channels">Ryhmittele päällekkäiset kanavat</string>
     <string name="set_parental_pin">Aseta vanhempien PIN-koodi</string>
     <string name="clear_watch_history">Tyhjennä katseluhistoria</string>
-    <string name="plugins_description">Pieniä skriptejä, jotka lisäävät toimintoja - palveluntarjoajien löytäminen tai striimien etsiminen. Mikään ei asennu erillisenä sovelluksena; skripti toimii Lumoran sisällä, ja mitä tahansa se ehdottaa käytetään vain, jos vahvistat sen.</string>
+    <string name="plugins_description">Pieniä skriptejä, jotka lisäävät toimintoja - palveluntarjoajien löytäminen tai striimien etsiminen. Mikään ei asennu erillisenä sovelluksena; skripti toimii ParafusoTVn sisällä, ja mitä tahansa se ehdottaa käytetään vain, jos vahvistat sen.</string>
     <string name="add_a_plugin">LISÄÄ PLUGIN</string>
     <string name="install_from_url">Lisää URL-osoitteesta</string>
     <string name="enter_apk_link">Anna plugin-skriptin linkki</string>
@@ -175,12 +175,10 @@
     <string name="results">TULOKSET</string>
     <string name="version">Versio</string>
     <string name="github">GitHub</string>
-    <string name="github_url">github.com/disclosurez/Lumora</string>
+    <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">Sovellus</string>
     <string name="about_platform_label">Alusta</string>
     <string name="about_platform_value">Android · TV + puhelin</string>
-    <string name="discord">Discord</string>
-    <string name="discord_url">https://discord.gg/cNKYGhQWvq</string>
     <string name="check_for_updates">Tarkista päivitykset</string>
 
     <!-- dialog_search.xml -->

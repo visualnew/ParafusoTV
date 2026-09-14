@@ -14,7 +14,7 @@ class AppUpdateChecker(private val context: Context) {
     private val TAG = "AppUpdate"
     // ParafusoTV has no public release repository configured yet. Never query the
     // upstream Lumora repository here: doing so could offer the wrong APK to users.
-    private val GITHUB_REPO = ""
+    private val GITHUB_REPO = "visualnew/ParafusoTV"
 
     data class UpdateInfo(
         val latestVersion: String,

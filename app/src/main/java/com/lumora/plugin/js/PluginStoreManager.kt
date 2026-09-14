@@ -15,7 +15,7 @@ import okhttp3.Request
  * Catalog schema (a small static JSON file, e.g. `scripts/index.json` in a plugin repo):
  * ```json
  * {
- *   "name": "Lumora Plugins",
+ *   "name": "Plugin Store",
  *   "scripts": [
  *     {
  *       "id": "anime.senshi",
@@ -37,7 +37,7 @@ class PluginStoreManager(
 ) {
     fun storeUrls(): List<PluginStore> {
         val custom = customStoreUrls()
-        val stores = mutableListOf(PluginStore(url = DEFAULT_STORE_URL, name = "Lumora Plugins", removable = false))
+        val stores = mutableListOf(PluginStore(url = DEFAULT_STORE_URL, name = "Plugin Store", removable = false))
         custom.filterNot { it == DEFAULT_STORE_URL }.forEach { stores.add(PluginStore(url = it, name = null, removable = true)) }
         return stores
     }

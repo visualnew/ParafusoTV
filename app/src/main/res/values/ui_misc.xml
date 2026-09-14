@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Android Auto / car screens -->
-    <string name="ui_car_no_channels">No channels cached yet. Open Lumora on your phone once so it can load your providers.</string>
+    <string name="ui_car_no_channels">No channels cached yet. Open ParafusoTV on your phone once so it can load your providers.</string>
     <string name="ui_favourites">Favourites</string>
     <string name="ui_recent">Recent</string>
     <string name="ui_all_channels">All channels</string>
@@ -15,9 +15,9 @@
     <string name="ui_next">Next</string>
 
     <!-- App updates -->
-    <string name="ui_update_title">Lumora Update</string>
+    <string name="ui_update_title">ParafusoTV Update</string>
     <string name="ui_update_downloading">Downloading v%1$s</string>
-    <string name="ui_update_allow_install">Allow Lumora to install updates, then try again</string>
+    <string name="ui_update_allow_install">Allow ParafusoTV to install updates, then try again</string>
     <string name="ui_update_no_app">No app found to install the update</string>
 
     <!-- Downloads -->

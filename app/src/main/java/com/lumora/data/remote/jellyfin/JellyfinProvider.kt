@@ -207,7 +207,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
             // Version comes back empty from a header it couldn't parse). A fixed literal
             // sidesteps that risk entirely - confirmed against another working Jellyfin
             // client's implementation, which does the same.
-            append("MediaBrowser Client=\"Lumora\", Device=\"Lumora\", DeviceId=\"$id\", Version=\"1.0.0\"")
+            append("MediaBrowser Client=\"ParafusoTV\", Device=\"ParafusoTV\", DeviceId=\"$id\", Version=\"1.0.0\"")
             token?.takeIf { it.isNotBlank() }?.let { append(", Token=\"$it\"") }
         }
     }
@@ -228,7 +228,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
             val request = Request.Builder().url(url)
                 .header("Content-Type", "application/json")
                 .header("Authorization", authHeader(base, username))
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .post(payload.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 
@@ -294,7 +294,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
                 .url("$base/QuickConnect/Initiate")
                 .header("Authorization", authHeader(base, "quickconnect"))
                 .header("Accept", "application/json")
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .post("{}".toRequestBody("application/json".toMediaType()))
                 .build()
 
@@ -330,7 +330,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
             val base = serverUrl.trimEnd('/')
             val url = "$base/QuickConnect/Connect?secret=${URLEncoder.encode(secret, "UTF-8")}"
             val request = Request.Builder().url(url)
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .build()
 
             // use{}: this runs in a poll loop, and the non-2xx path (an expired or revoked
@@ -357,7 +357,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
             val request = Request.Builder().url(url)
                 .header("Content-Type", "application/json")
                 .header("Authorization", authHeader(base, "quickconnect"))
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .post(payload.toString().toRequestBody("application/json".toMediaType()))
                 .build()
 
@@ -579,7 +579,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
         return runCatching {
             val builder = Request.Builder().url(url)
                 .header("X-Emby-Token", token)
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
             val request = if (favorite) {
                 builder.post("{}".toRequestBody("application/json".toMediaType())).build()
             } else {
@@ -600,7 +600,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
         return runCatching {
             val builder = Request.Builder().url(url)
                 .header("X-Emby-Token", token)
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
             val request = if (played) {
                 builder.post("{}".toRequestBody("application/json".toMediaType())).build()
             } else {
@@ -620,7 +620,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
         return runCatching {
             val request = Request.Builder().url(url)
                 .header("X-Emby-Token", token)
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .delete()
                 .build()
             client.newCall(request).execute().use { it.isSuccessful }
@@ -717,7 +717,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
     private suspend fun fetchItems(url: String, token: String): Pair<List<JSONObject>, Int?> {
         val request = Request.Builder().url(url)
             .header("X-Emby-Token", token)
-            .header("User-Agent", "Lumora/1.0")
+            .header("User-Agent", "ParafusoTV/1.0")
             .build()
 
         // use{}, because the early return on a non-2xx left the body unread and unclosed -
@@ -742,7 +742,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
         return runCatching {
             val request = Request.Builder().url(url)
                 .header("X-Emby-Token", token)
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .build()
             client.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return null
@@ -759,7 +759,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
             val request = Request.Builder().url(url)
                 .header("X-Emby-Token", token)
                 .header("Content-Type", "application/json")
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .post(payload.toString().toRequestBody("application/json".toMediaType()))
                 .build()
             client.newCall(request).execute().use { it.isSuccessful }
@@ -1032,7 +1032,7 @@ class JellyfinProvider(baseClient: OkHttpClient) {
             val request = Request.Builder().url(url)
                 .header("X-Emby-Token", token)
                 .header("Content-Type", "application/json")
-                .header("User-Agent", "Lumora/1.0")
+                .header("User-Agent", "ParafusoTV/1.0")
                 .post(payload.toString().toRequestBody("application/json".toMediaType()))
                 .build()
             client.newCall(request).execute().use { response ->

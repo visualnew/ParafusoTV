@@ -68,7 +68,7 @@ class EpgSyncWorker(
             try {
                 Log.d(TAG, "Fetching EPG: ${source.name}")
                 val request = Request.Builder().url(source.url)
-                    .header("User-Agent", source.userAgent ?: "Lumora/2.0")
+                    .header("User-Agent", source.userAgent ?: "ParafusoTV/2.0")
                     .header("Accept", "application/xml, text/xml, */*")
                     .build()
 

@@ -1678,7 +1678,7 @@
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/settings_gap_m" android:background="@color/divider" />
 
                 <LinearLayout
-                    android:id="@+id/settingsDiscordLink"
+                    android:id="@+id/settingsDeveloperLink"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:paddingVertical="@dimen/settings_row_padding_vertical"
@@ -1690,8 +1690,92 @@
                     android:orientation="horizontal"
                     android:paddingHorizontal="@dimen/settings_gap_l"
                     android:stateListAnimator="@animator/focus_scale_flat">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/discord" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_body" android:fontFamily="@font/inter_medium" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/discord_url" android:textColor="@color/primary_light" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_regular" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/developer_label" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_body" android:fontFamily="@font/inter_medium" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/developer_value" android:textColor="@color/primary_light" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_regular" />
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/settings_gap_m" android:background="@color/divider" />
+
+                <LinearLayout
+                    android:id="@+id/settingsVisualnewLink"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="@dimen/settings_row_padding_vertical"
+                    android:layout_marginTop="@dimen/settings_gap_m"
+                    android:background="@drawable/card_surface_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/settings_gap_l"
+                    android:stateListAnimator="@animator/focus_scale_flat">
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/produced_by_label" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_body" android:fontFamily="@font/inter_medium" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/official_site_url" android:textColor="@color/primary_light" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_regular" />
+
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/settings_gap_m" android:background="@color/divider" />
+
+                <LinearLayout
+                    android:id="@+id/settingsInstagramLink"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="@dimen/settings_row_padding_vertical"
+                    android:layout_marginTop="@dimen/settings_gap_m"
+                    android:background="@drawable/card_surface_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/settings_gap_l"
+                    android:stateListAnimator="@animator/focus_scale_flat">
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/instagram" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_body" android:fontFamily="@font/inter_medium" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/instagram_url" android:textColor="@color/primary_light" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_regular" />
+
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/settings_gap_m" android:background="@color/divider" />
+
+                <LinearLayout
+                    android:id="@+id/settingsFacebookLink"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="@dimen/settings_row_padding_vertical"
+                    android:layout_marginTop="@dimen/settings_gap_m"
+                    android:background="@drawable/card_surface_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/settings_gap_l"
+                    android:stateListAnimator="@animator/focus_scale_flat">
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/facebook" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_body" android:fontFamily="@font/inter_medium" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/facebook_url" android:textColor="@color/primary_light" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_regular" />
+
+                </LinearLayout>
+
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/settings_gap_m" android:background="@color/divider" />
+
+                <LinearLayout
+                    android:id="@+id/settingsYoutubeLink"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="@dimen/settings_row_padding_vertical"
+                    android:layout_marginTop="@dimen/settings_gap_m"
+                    android:background="@drawable/card_surface_background"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="@dimen/settings_gap_l"
+                    android:stateListAnimator="@animator/focus_scale_flat">
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/youtube" android:textColor="@color/text_primary" android:textSize="@dimen/settings_text_body" android:fontFamily="@font/inter_medium" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/youtube_url" android:textColor="@color/primary_light" android:textSize="@dimen/settings_text_caption" android:fontFamily="@font/inter_regular" />
+
                 </LinearLayout>
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/settings_gap_m" android:background="@color/divider" />
