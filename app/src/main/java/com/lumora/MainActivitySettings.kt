@@ -1818,6 +1818,13 @@ internal fun MainActivity.showProviderSettings(initialSection: Int = 0) {
         val info = packageManager.getPackageInfo(packageName, 0)
         "${info.versionName} (${info.versionCode})"
     } catch (e: Exception) { getString(R.string.sett_unknown) }
+    dialogView.findViewById<View>(R.id.settingsOriginLink).setOnClickListener {
+        try {
+            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://github.com/disclosurez/Lumora")))
+        } catch (e: android.content.ActivityNotFoundException) {
+            Toast.makeText(this, getString(R.string.sett_no_browser_available), Toast.LENGTH_SHORT).show()
+        }
+    }
     dialogView.findViewById<View>(R.id.settingsGithubLink).setOnClickListener {
         try {
             startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse("https://github.com/visualnew/ParafusoTV")))

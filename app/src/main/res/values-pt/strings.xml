@@ -189,6 +189,9 @@
     <string name="github_url">github.com/visualnew/ParafusoTV</string>
     <string name="about_app_label">Aplicativo</string>
     <string name="about_platform_label">Plataforma</string>
+    <string name="about_origin_label">Origem e licença</string>
+    <string name="about_origin_value">Baseado no Lumora · PolyForm Noncommercial 1.0.0</string>
+    <string name="about_origin_url">github.com/disclosurez/Lumora</string>
     <string name="about_platform_value">Android · TV + telefone</string>
     <string name="developer_label">Desenvolvedor</string>
     <string name="developer_name">Jonathan Tavares</string>
