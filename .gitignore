@@ -17,3 +17,8 @@ node_modules/
 package-lock.json
 package.json
 .DS_Store
+
+# Local backups and diagnostics - never commit
+backup/
+parafusotv_crash.txt
+*.log
