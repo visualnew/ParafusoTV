@@ -1,3 +1,13 @@
+## 2.0.0-beta.1
+
+### Highlights
+- First public Beta of ParafusoTV.
+- Public branding and release workflow updated from Lumora to ParafusoTV.
+- Signed release pipeline configured for GitHub Actions.
+- CI simplified to validate Android buildability on GitHub runners.
+- Release APK validated on Moto G56 5G and Amazon Fire TV Stick.
+- About screen includes Lumora origin and PolyForm Noncommercial 1.0.0 attribution.
+
 # ParafusoTV — Stage 9
 
 ## IPTV list management
