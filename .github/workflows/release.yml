@@ -52,13 +52,13 @@ jobs:
           BUILD_TOOLS_VERSION: "35.0.0"
 
       - name: Rename APK
-        run: cp "${{ steps.sign_app.outputs.signedReleaseFile }}" app/build/outputs/apk/release/Lumora.apk
+        run: cp "${{ steps.sign_app.outputs.signedReleaseFile }}" app/build/outputs/apk/release/ParafusoTV.apk
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Lumora-APK
-          path: app/build/outputs/apk/release/Lumora.apk
+          name: ParafusoTV-APK
+          path: app/build/outputs/apk/release/ParafusoTV.apk
           compression-level: 0
 
       # Release notes come from the tag's own section of CHANGELOG.md, so a release says
@@ -71,7 +71,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           {
-            echo "## Lumora ${GITHUB_REF_NAME}"
+            echo "## ParafusoTV ${GITHUB_REF_NAME}"
             echo
             awk -v ver="$VERSION" '
               $0 == "## " ver { found = 1; next }
@@ -84,7 +84,7 @@ jobs:
           } > release-notes.md
           if [ "$(grep -c '[^[:space:]]' release-notes.md)" -le 4 ]; then
             echo "No CHANGELOG entry for $VERSION - using generic notes"
-            printf '## Lumora %s\n\n### Installation\nDownload the APK below and install on your Android TV, Fire TV Stick, or phone.\n' "$GITHUB_REF_NAME" > release-notes.md
+            printf '## ParafusoTV %s\n\n### Installation\nDownload the APK below and install on your Android TV, Fire TV Stick, or phone.\n' "$GITHUB_REF_NAME" > release-notes.md
           fi
           cat release-notes.md
 
@@ -93,7 +93,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
-          name: Lumora ${{ github.ref_name }}
+          name: ParafusoTV ${{ github.ref_name }}
           body_path: release-notes.md
           files: |
-            app/build/outputs/apk/release/Lumora.apk
+            app/build/outputs/apk/release/ParafusoTV.apk

@@ -36,8 +36,8 @@ android {
         minSdk = 25
         targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        versionCode = 4
-        versionName = "2.0.0-alpha.3"
+        versionCode = 5
+        versionName = "2.0.0-beta.1"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
