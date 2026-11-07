@@ -21,6 +21,15 @@
     <!-- Focus (D-pad ring) -->
     <color name="focus">#FFF1F5F9</color>
 
+    <!-- Graphite action buttons -->
+    <color name="button_graphite_fill">#FF303840</color>
+    <color name="button_graphite_border">#FF788590</color>
+    <color name="button_graphite_focused_fill">#FF414B55</color>
+    <color name="button_graphite_focus_ring">#FFDFE9F4</color>
+    <color name="button_graphite_pressed_fill">#FF242B32</color>
+    <color name="button_graphite_disabled_fill">#FF1C2228</color>
+    <color name="button_graphite_disabled_border">#FF4B535A</color>
+
     <!-- Text -->
     <color name="text_primary">#FFF1F5F9</color>
     <color name="text_secondary">#FF9CA3AF</color>

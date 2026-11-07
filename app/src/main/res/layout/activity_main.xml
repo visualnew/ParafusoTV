@@ -727,7 +727,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/add_iptv_list"
-                            android:textColor="@color/text_primary"
+                            android:textColor="@android:color/white"
                             android:textStyle="bold"
                             android:textSize="@dimen/text_body_s" />
                     </LinearLayout>
@@ -3095,7 +3095,7 @@
                     android:stateListAnimator="@animator/focus_scale"
                     android:text="@string/play_now"
                     android:textAllCaps="true"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@android:color/white"
                     android:textSize="@dimen/text_caption"
                     android:textStyle="bold" />
 

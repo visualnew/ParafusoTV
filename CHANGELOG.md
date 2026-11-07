@@ -1,3 +1,21 @@
+## 2.0.0
+
+Primeira versão estável da série 2.0. A nova interface e a atualização sobre a beta foram validadas no Moto G56 e no Amazon Fire TV Stick.
+
+### Interface
+
+- Os botões agora usam grafite escuro, com texto e ícones brancos para melhorar a legibilidade. O contorno claro destaca o botão em foco ao navegar pelo controle remoto.
+- As funcionalidades existentes foram preservadas.
+
+### Integrações
+
+- Trakt e TMDB não estão configurados nesta distribuição.
+
+### Atualização da beta
+
+- Baixe `ParafusoTV.apk` e instale manualmente por cima da `2.0.0-beta.1`, sem desinstalar o aplicativo, para preservar os dados.
+- O verificador de atualizações da `2.0.0-beta.1` não reconhece a `2.0.0` como uma versão mais recente.
+
 ## 2.0.0-beta.1
 
 ### Highlights
